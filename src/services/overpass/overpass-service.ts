@@ -3,6 +3,7 @@
  * @module services/overpass/overpass-service
  */
 
+import { createHash } from 'node:crypto';
 import type { Context } from '@cyanheads/mcp-ts-core';
 import type { AppConfig } from '@cyanheads/mcp-ts-core/config';
 import { serviceUnavailable, timeout as timeoutError } from '@cyanheads/mcp-ts-core/errors';
@@ -36,7 +37,8 @@ export class OverpassService {
   }
 
   private buildCacheKey(query: string): string {
-    return `overpass:${query}`;
+    const hash = createHash('sha256').update(query).digest('hex').slice(0, 16);
+    return `overpass/${hash}`;
   }
 
   /** Build an around-filter Overpass QL query. */

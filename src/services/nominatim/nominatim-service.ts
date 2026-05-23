@@ -3,6 +3,7 @@
  * @module services/nominatim/nominatim-service
  */
 
+import { createHash } from 'node:crypto';
 import type { Context } from '@cyanheads/mcp-ts-core';
 import type { AppConfig } from '@cyanheads/mcp-ts-core/config';
 import { serviceUnavailable } from '@cyanheads/mcp-ts-core/errors';
@@ -48,7 +49,8 @@ export class NominatimService {
   }
 
   private buildCacheKey(endpoint: string, params: Record<string, unknown>): string {
-    return `nominatim:${endpoint}:${JSON.stringify(params)}`;
+    const hash = createHash('sha256').update(JSON.stringify(params)).digest('hex').slice(0, 16);
+    return `nominatim/${endpoint}/${hash}`;
   }
 
   private async fetchJson<T>(
