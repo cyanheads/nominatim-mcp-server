@@ -4,12 +4,9 @@
 # This stage installs all dependencies (including dev), builds the TypeScript
 # source code into JavaScript, and prepares the production assets.
 # ==============================================================================
-FROM node:24-slim AS build
+FROM oven/bun:1.3 AS build
 
 WORKDIR /usr/src/app
-
-# Install bun for dependency management (faster installs, frozen lockfile support)
-RUN npm install -g bun@1.3
 
 # Copy dependency manifests for optimized layer caching
 COPY package.json bun.lock ./
@@ -21,7 +18,7 @@ RUN bun install --frozen-lockfile
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN bun run build
 
 
 # ==============================================================================
@@ -41,9 +38,9 @@ ENV NODE_ENV=production
 
 # OCI image metadata (https://github.com/opencontainers/image-spec/blob/main/annotations.md)
 LABEL org.opencontainers.image.title="@cyanheads/nominatim-mcp-server"
-LABEL org.opencontainers.image.description="MCP server for OpenStreetMap Nominatim and Overpass — geocoding, reverse geocoding, and spatial queries"
-LABEL org.opencontainers.image.source="https://github.com/cyanheads/nominatim-mcp-server"
+LABEL org.opencontainers.image.description="Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data via MCP. STDIO or Streamable HTTP."
 LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.source="https://github.com/cyanheads/nominatim-mcp-server"
 
 # Copy dependency manifests
 COPY package.json bun.lock ./

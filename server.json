@@ -6,14 +6,14 @@
     "url": "https://github.com/cyanheads/nominatim-mcp-server",
     "source": "github"
   },
-  "version": "0.1.4",
+  "version": "0.1.5",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@cyanheads/nominatim-mcp-server",
-      "runtimeHint": "node",
-      "version": "0.1.4",
+      "runtimeHint": "bun",
+      "version": "0.1.5",
       "packageArguments": [
         {
           "type": "positional",
@@ -37,7 +37,7 @@
           "description": "User-Agent sent to Nominatim. Required by Nominatim usage policy.",
           "format": "string",
           "isRequired": false,
-          "default": "nominatim-mcp-server/0.1.4"
+          "default": "nominatim-mcp-server/0.1.5"
         },
         {
           "name": "OVERPASS_BASE_URL",
@@ -62,8 +62,8 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@cyanheads/nominatim-mcp-server",
-      "runtimeHint": "node",
-      "version": "0.1.4",
+      "runtimeHint": "bun",
+      "version": "0.1.5",
       "packageArguments": [
         {
           "type": "positional",
@@ -97,6 +97,12 @@
           "default": "/mcp"
         },
         {
+          "name": "MCP_PUBLIC_URL",
+          "description": "Public origin override for deployments behind a TLS-terminating reverse proxy (e.g. https://mcp.example.com).",
+          "format": "string",
+          "isRequired": false
+        },
+        {
           "name": "MCP_AUTH_MODE",
           "description": "Authentication mode to use: 'none', 'jwt', or 'oauth'.",
           "format": "string",
@@ -115,7 +121,7 @@
           "description": "User-Agent sent to Nominatim. Required by Nominatim usage policy.",
           "format": "string",
           "isRequired": false,
-          "default": "nominatim-mcp-server/0.1.4"
+          "default": "nominatim-mcp-server/0.1.5"
         },
         {
           "name": "OVERPASS_BASE_URL",

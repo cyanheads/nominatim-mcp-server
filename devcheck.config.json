@@ -5,6 +5,7 @@
       "pino-pretty",
       "typescript",
       "tsc-alias",
+      "tsx",
       "depcheck",
       "@cyanheads/mcp-ts-core"
     ],

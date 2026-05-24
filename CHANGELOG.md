@@ -2,6 +2,10 @@
 
 All notable changes to this project. Each entry links to its full per-version file in [changelog/](changelog/).
 
+## [0.1.5](changelog/0.1.x/0.1.5.md) — 2026-05-23
+
+Dockerfile build stage restored to oven/bun:1.3; package.json scripts migrated from tsx to bun run; manifest.json description and metadata fields aligned; server.json runtimeHint corrected to bun
+
 ## [0.1.4](changelog/0.1.x/0.1.4.md) — 2026-05-23
 
 Sync tagline across README, package.json, server.json, manifest.json, and GitHub repo description

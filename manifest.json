@@ -1,9 +1,15 @@
 {
   "manifest_version": "0.3",
   "name": "nominatim-mcp-server",
-  "version": "0.1.4",
-  "description": "Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data.",
+  "version": "0.1.5",
+  "description": "Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data via MCP. STDIO or Streamable HTTP.",
   "author": { "name": "cyanheads" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cyanheads/nominatim-mcp-server"
+  },
+  "homepage": "https://github.com/cyanheads/nominatim-mcp-server#readme",
+  "license": "Apache-2.0",
   "server": {
     "type": "node",
     "entry_point": "dist/index.js",

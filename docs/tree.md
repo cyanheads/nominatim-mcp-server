@@ -1,6 +1,6 @@
 # nominatim-mcp-server - Directory Structure
 
-Generated on: 2026-05-23 18:10:43
+Generated on: 2026-05-24 03:30:38
 
 ```text
 nominatim-mcp-server/
@@ -142,6 +142,7 @@ nominatim-mcp-server/
 ├── .mcpbignore
 ├── biome.json
 ├── bun.lock
+├── bunfig.toml
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── devcheck.config.json
