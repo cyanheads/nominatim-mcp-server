@@ -1,11 +1,11 @@
 /**
- * @fileoverview Tests for the nominatim-geocode tool.
- * @module tests/tools/nominatim-geocode.tool.test
+ * @fileoverview Tests for the openstreetmap-geocode tool.
+ * @module tests/tools/openstreetmap-geocode.tool.test
  */
 
 import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { nominatimGeocode } from '@/mcp-server/tools/definitions/nominatim-geocode.tool.js';
+import { openstreetmapGeocode } from '@/mcp-server/tools/definitions/openstreetmap-geocode.tool.js';
 import type { NominatimPlace } from '@/services/nominatim/types.js';
 
 // --- service mock --------------------------------------------------------
@@ -43,7 +43,7 @@ const richPlace: NominatimPlace = {
 
 // -------------------------------------------------------------------------
 
-describe('nominatimGeocode', () => {
+describe('openstreetmapGeocode', () => {
   beforeEach(() => {
     mockSearch.mockReset();
   });
@@ -51,9 +51,9 @@ describe('nominatimGeocode', () => {
   describe('happy path — free-form query', () => {
     it('returns geocoding results for a valid query', async () => {
       mockSearch.mockResolvedValue([minimalPlace]);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ query: 'Seattle' });
-      const result = await nominatimGeocode.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ query: 'Seattle' });
+      const result = await openstreetmapGeocode.handler(input, ctx);
 
       expect(result.total).toBe(1);
       expect(result.results[0]).toMatchObject({
@@ -67,9 +67,9 @@ describe('nominatimGeocode', () => {
 
     it('includes optional fields when present in upstream response', async () => {
       mockSearch.mockResolvedValue([richPlace]);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ query: 'Space Needle Seattle' });
-      const result = await nominatimGeocode.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ query: 'Space Needle Seattle' });
+      const result = await openstreetmapGeocode.handler(input, ctx);
 
       expect(result.results[0]).toMatchObject({
         osm_type: 'node',
@@ -87,23 +87,23 @@ describe('nominatimGeocode', () => {
   describe('happy path — structured query', () => {
     it('accepts structured address fields', async () => {
       mockSearch.mockResolvedValue([minimalPlace]);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ city: 'Seattle', state: 'Washington' });
-      const result = await nominatimGeocode.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ city: 'Seattle', state: 'Washington' });
+      const result = await openstreetmapGeocode.handler(input, ctx);
       expect(result.total).toBe(1);
     });
 
     it('passes optional filters to the service', async () => {
       mockSearch.mockResolvedValue([minimalPlace]);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({
         query: 'pharmacy',
         countrycodes: 'us',
         limit: 10,
         extratags: true,
         language: 'en',
       });
-      await nominatimGeocode.handler(input, ctx);
+      await openstreetmapGeocode.handler(input, ctx);
       expect(mockSearch).toHaveBeenCalledOnce();
     });
   });
@@ -111,9 +111,9 @@ describe('nominatimGeocode', () => {
   describe('sparse upstream payload', () => {
     it('handles a place with only required fields (no optional data)', async () => {
       mockSearch.mockResolvedValue([minimalPlace]);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ query: 'Seattle' });
-      const result = await nominatimGeocode.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ query: 'Seattle' });
+      const result = await openstreetmapGeocode.handler(input, ctx);
 
       const r = result.results[0]!;
       expect(r.name).toBeUndefined();
@@ -126,35 +126,35 @@ describe('nominatimGeocode', () => {
 
   describe('error paths', () => {
     it('throws invalid_input when query and structured fields are combined', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ query: 'Seattle', city: 'Seattle' });
-      await expect(nominatimGeocode.handler(input, ctx)).rejects.toMatchObject({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ query: 'Seattle', city: 'Seattle' });
+      await expect(openstreetmapGeocode.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'invalid_input' },
       });
     });
 
     it('throws invalid_input when neither query nor structured fields are provided', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ limit: 5 });
-      await expect(nominatimGeocode.handler(input, ctx)).rejects.toMatchObject({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ limit: 5 });
+      await expect(openstreetmapGeocode.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'invalid_input' },
       });
     });
 
     it('throws no_results when the service returns empty array', async () => {
       mockSearch.mockResolvedValue([]);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ query: 'xyzzy_nowhere_place' });
-      await expect(nominatimGeocode.handler(input, ctx)).rejects.toMatchObject({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ query: 'xyzzy_nowhere_place' });
+      await expect(openstreetmapGeocode.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'no_results' },
       });
     });
 
     it('propagates service errors', async () => {
       mockSearch.mockRejectedValue(new Error('Network error'));
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimGeocode.errors });
-      const input = nominatimGeocode.input.parse({ query: 'Seattle' });
-      await expect(nominatimGeocode.handler(input, ctx)).rejects.toThrow('Network error');
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ query: 'Seattle' });
+      await expect(openstreetmapGeocode.handler(input, ctx)).rejects.toThrow('Network error');
     });
   });
 
@@ -178,7 +178,7 @@ describe('nominatimGeocode', () => {
         total: 1,
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = nominatimGeocode.format!(output);
+      const blocks = openstreetmapGeocode.format!(output);
       expect(blocks[0]!.type).toBe('text');
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('Space Needle');
@@ -199,7 +199,7 @@ describe('nominatimGeocode', () => {
         total: 2,
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = nominatimGeocode.format!(output);
+      const blocks = openstreetmapGeocode.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('2 results found');
       expect(text).toContain('Place A');
@@ -221,7 +221,7 @@ describe('nominatimGeocode', () => {
         total: 1,
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = nominatimGeocode.format!(output);
+      const blocks = openstreetmapGeocode.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('Bounding box');
       expect(text).toContain('website: https://example.com');

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Shared formatting helpers for Nominatim place result rendering.
- * @module mcp-server/tools/definitions/nominatim-format
+ * @module mcp-server/tools/definitions/openstreetmap-format
  */
 
 /** Address keys to omit from the address details line (technical codes, not human-readable). */

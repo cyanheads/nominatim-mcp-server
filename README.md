@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>@cyanheads/nominatim-mcp-server</h1>
+  <h1>@cyanheads/openstreetmap-mcp-server</h1>
   <p><b>Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data via MCP. STDIO or Streamable HTTP.</b>
   <div>6 Tools</div>
   </p>
@@ -9,13 +9,13 @@
 
 
 
-[![Version](https://img.shields.io/badge/Version-0.1.8-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICENSE) [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-^1.29.0-green.svg?style=flat-square)](https://modelcontextprotocol.io/) [![npm](https://img.shields.io/npm/v/@cyanheads/nominatim-mcp-server?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/package/@cyanheads/nominatim-mcp-server) [![TypeScript](https://img.shields.io/badge/TypeScript-^6.0.3-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.3.0-blueviolet.svg?style=flat-square)](https://bun.sh/)
+[![Version](https://img.shields.io/badge/Version-0.2.0-blue.svg?style=flat-square)](./CHANGELOG.md) [![License](https://img.shields.io/badge/License-Apache%202.0-orange.svg?style=flat-square)](./LICENSE) [![Docker](https://img.shields.io/badge/Docker-ghcr.io-2496ED?style=flat-square&logo=docker&logoColor=white)](https://github.com/users/cyanheads/packages/container/package/openstreetmap-mcp-server) [![MCP SDK](https://img.shields.io/badge/MCP%20SDK-^1.29.0-green.svg?style=flat-square)](https://modelcontextprotocol.io/) [![npm](https://img.shields.io/npm/v/@cyanheads/openstreetmap-mcp-server?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/package/@cyanheads/openstreetmap-mcp-server) [![TypeScript](https://img.shields.io/badge/TypeScript-^6.0.3-3178C6.svg?style=flat-square)](https://www.typescriptlang.org/) [![Bun](https://img.shields.io/badge/Bun-v1.3.0-blueviolet.svg?style=flat-square)](https://bun.sh/)
 
 </div>
 
 <div align="center">
 
-[![Install in Claude Desktop](https://img.shields.io/badge/Install_in-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/cyanheads/nominatim-mcp-server/releases/latest/download/nominatim-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=nominatim-mcp-server&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBjeWFuaGVhZHMvbm9taW5hdGltLW1jcC1zZXJ2ZXIiXX0=) [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode:mcp/install?%7B%22name%22%3A%22nominatim-mcp-server%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40cyanheads%2Fnominatim-mcp-server%22%5D%7D)
+[![Install in Claude Desktop](https://img.shields.io/badge/Install_in-Claude_Desktop-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://github.com/cyanheads/openstreetmap-mcp-server/releases/latest/download/openstreetmap-mcp-server.mcpb) [![Install in Cursor](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=openstreetmap-mcp-server&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsIkBjeWFuaGVhZHMvb3BlbnN0cmVldG1hcC1tY3Atc2VydmVyIl19) [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=for-the-badge&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode:mcp/install?%7B%22name%22%3A%22openstreetmap-mcp-server%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40cyanheads%2Fopenstreetmap-mcp-server%22%5D%7D)
 
 [![Framework](https://img.shields.io/badge/Built%20on-@cyanheads/mcp--ts--core-67E8F9?style=flat-square)](https://www.npmjs.com/package/@cyanheads/mcp-ts-core)
 
@@ -23,7 +23,7 @@
 
 <div align="center">
 
-**Public Hosted Server:** [https://nominatim.caseyjhand.com/mcp](https://nominatim.caseyjhand.com/mcp)
+**Public Hosted Server:** [https://openstreetmap.caseyjhand.com/mcp](https://openstreetmap.caseyjhand.com/mcp)
 
 </div>
 
@@ -35,14 +35,14 @@
 
 | Tool | Description |
 |:---|:---|
-| `nominatim_geocode` | Convert a place name or address to geographic coordinates and structured place data |
-| `nominatim_reverse` | Convert latitude/longitude coordinates to the nearest address or place name |
-| `nominatim_lookup` | Fetch address details for one or more known OSM objects by their IDs |
-| `overpass_query_nearby` | Find OSM features within a radius around a geographic point |
-| `overpass_query_bbox` | Find OSM features within a rectangular bounding box |
-| `overpass_query_raw` | Execute a raw Overpass QL query for advanced spatial operations |
+| `openstreetmap_geocode` | Convert a place name or address to geographic coordinates and structured place data |
+| `openstreetmap_reverse` | Convert latitude/longitude coordinates to the nearest address or place name |
+| `openstreetmap_lookup` | Fetch address details for one or more known OSM objects by their IDs |
+| `openstreetmap_query_nearby` | Find OSM features within a radius around a geographic point |
+| `openstreetmap_query_bbox` | Find OSM features within a rectangular bounding box |
+| `openstreetmap_query_raw` | Execute a raw Overpass QL query for advanced spatial operations |
 
-### `nominatim_geocode`
+### `openstreetmap_geocode`
 
 Convert a place name or address to geographic coordinates via Nominatim/OpenStreetMap.
 
@@ -53,11 +53,11 @@ Convert a place name or address to geographic coordinates via Nominatim/OpenStre
 - Optional extra OSM tags (phone, website, opening_hours, wikidata)
 - Preferred language override via BCP 47 code
 - Returns results ordered by Nominatim importance score (global prominence)
-- Results include coordinates, structured address, bounding box, OSM type/ID for chaining into `nominatim_lookup`
+- Results include coordinates, structured address, bounding box, OSM type/ID for chaining into `openstreetmap_lookup`
 
 ---
 
-### `nominatim_reverse`
+### `openstreetmap_reverse`
 
 Convert latitude/longitude to the nearest address or named place.
 
@@ -68,7 +68,7 @@ Convert latitude/longitude to the nearest address or named place.
 
 ---
 
-### `nominatim_lookup`
+### `openstreetmap_lookup`
 
 Fetch full Nominatim address records for known OSM object IDs.
 
@@ -80,7 +80,7 @@ Fetch full Nominatim address records for known OSM object IDs.
 
 ---
 
-### `overpass_query_nearby`
+### `openstreetmap_query_nearby`
 
 Find OSM features within a radius around a point via the Overpass API.
 
@@ -93,18 +93,18 @@ Find OSM features within a radius around a point via the Overpass API.
 
 ---
 
-### `overpass_query_bbox`
+### `openstreetmap_query_bbox`
 
 Find OSM features within a rectangular geographic bounding box.
 
 - Useful for area surveys where proximity to a single point isn't the goal
-- Same `amenity` / `tag_key` + `tag_value` interface as `overpass_query_nearby`
+- Same `amenity` / `tag_key` + `tag_value` interface as `openstreetmap_query_nearby`
 - Configurable timeout for large bounding boxes or dense areas
 - Limit up to 500 results with `truncated` flag
 
 ---
 
-### `overpass_query_raw`
+### `openstreetmap_query_raw`
 
 Execute arbitrary Overpass QL for queries the convenience tools don't cover.
 
@@ -126,16 +126,16 @@ Built on [`@cyanheads/mcp-ts-core`](https://github.com/cyanheads/mcp-ts-core):
 
 Nominatim/Overpass-specific:
 
-- Nominatim usage policy compliance: configurable `User-Agent` via `NOMINATIM_USER_AGENT`, rate-limit-aware request handling
+- Nominatim usage policy compliance: configurable `User-Agent` via `OSM_USER_AGENT`, rate-limit-aware request handling
 - OSM attribution on every response (`Data © OpenStreetMap contributors, ODbL 1.0`)
-- Private instance support — override `NOMINATIM_BASE_URL` and `OVERPASS_BASE_URL` for self-hosted or mirror endpoints
+- Private instance support — override `OSM_NOMINATIM_BASE_URL` and `OSM_OVERPASS_BASE_URL` for self-hosted or mirror endpoints
 - Structured error contracts: `no_results`, `no_coverage`, `invalid_id_format`, `invalid_tag`, `query_timeout`, `rate_limited`, `query_error`, `result_too_large` — all with actionable recovery hints
 
 Agent-friendly output:
 
 - Attribution on every response — agents can surface the ODbL license notice as required
 - Structured output contracts — coordinates, OSM IDs, address fields, and tag maps in consistent shapes
-- Cross-tool chaining: Overpass results carry `osm_type` + `osm_id` that feed directly into `nominatim_lookup` for full address records
+- Cross-tool chaining: Overpass results carry `osm_type` + `osm_id` that feed directly into `openstreetmap_lookup` for full address records
 
 ## Getting started
 
@@ -146,10 +146,10 @@ Add the following to your MCP client configuration file.
 ```json
 {
   "mcpServers": {
-    "nominatim": {
+    "openstreetmap": {
       "type": "stdio",
       "command": "bunx",
-      "args": ["@cyanheads/nominatim-mcp-server@latest"],
+      "args": ["@cyanheads/openstreetmap-mcp-server@latest"],
       "env": {
         "MCP_TRANSPORT_TYPE": "stdio",
         "MCP_LOG_LEVEL": "info"
@@ -164,10 +164,10 @@ Or with npx (no Bun required):
 ```json
 {
   "mcpServers": {
-    "nominatim": {
+    "openstreetmap": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@cyanheads/nominatim-mcp-server@latest"],
+      "args": ["-y", "@cyanheads/openstreetmap-mcp-server@latest"],
       "env": {
         "MCP_TRANSPORT_TYPE": "stdio",
         "MCP_LOG_LEVEL": "info"
@@ -187,20 +187,20 @@ MCP_TRANSPORT_TYPE=http MCP_HTTP_PORT=3010 bun run start:http
 ### Prerequisites
 
 - [Bun v1.3.0](https://bun.sh/) or higher (or Node.js ≥24.0.0).
-- No API key required — Nominatim and Overpass are public APIs. For heavy use, consider pointing `NOMINATIM_BASE_URL` and `OVERPASS_BASE_URL` at self-hosted or mirror instances.
+- No API key required — Nominatim and Overpass are public APIs. For heavy use, consider pointing `OSM_NOMINATIM_BASE_URL` and `OSM_OVERPASS_BASE_URL` at self-hosted or mirror instances.
 
 ### Installation
 
 1. **Clone the repository:**
 
 ```sh
-git clone https://github.com/cyanheads/nominatim-mcp-server.git
+git clone https://github.com/cyanheads/openstreetmap-mcp-server.git
 ```
 
 2. **Navigate into the directory:**
 
 ```sh
-cd nominatim-mcp-server
+cd openstreetmap-mcp-server
 ```
 
 3. **Install dependencies:**
@@ -223,9 +223,9 @@ All configuration is validated at startup via Zod schemas in `src/config/server-
 | `MCP_LOG_LEVEL` | Log level (`debug`, `info`, `warning`, `error`, etc.) | `info` |
 | `MCP_GC_PRESSURE_INTERVAL_MS` | Opt-in Bun-only forced-GC pressure loop (ms). Recommended starting point if heap growth is observed: `60000`. | `0` (disabled) |
 | `STORAGE_PROVIDER_TYPE` | Storage backend: `in-memory`, `filesystem`, `supabase`, `cloudflare-kv/r2/d1` | `in-memory` |
-| `NOMINATIM_BASE_URL` | Nominatim API base URL. Override for a private or mirror instance. | `https://nominatim.openstreetmap.org` |
-| `OVERPASS_BASE_URL` | Overpass API endpoint URL. Override for a mirror or private instance. | `https://overpass-api.de/api/interpreter` |
-| `NOMINATIM_USER_AGENT` | User-Agent sent to Nominatim and Overpass. Required by usage policy. | `nominatim-mcp-server/0.1.8` |
+| `OSM_NOMINATIM_BASE_URL` | Nominatim API base URL. Override for a private or mirror instance. | `https://nominatim.openstreetmap.org` |
+| `OSM_OVERPASS_BASE_URL` | Overpass API endpoint URL. Override for a mirror or private instance. | `https://overpass-api.de/api/interpreter` |
+| `OSM_USER_AGENT` | User-Agent sent to Nominatim and Overpass. Required by usage policy. | `openstreetmap-mcp-server/0.1.8` |
 | `OTEL_ENABLED` | Enable OpenTelemetry | `false` |
 
 ## Running the server

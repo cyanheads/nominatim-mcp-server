@@ -1,23 +1,23 @@
 /**
  * @fileoverview Forward geocoding tool — converts place names or addresses to coordinates.
- * @module mcp-server/tools/definitions/nominatim-geocode.tool
+ * @module mcp-server/tools/definitions/openstreetmap-geocode.tool
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
 import { JsonRpcErrorCode } from '@cyanheads/mcp-ts-core/errors';
 import { getNominatimService } from '@/services/nominatim/nominatim-service.js';
-import { appendPlaceLines } from './nominatim-format.js';
+import { appendPlaceLines } from './openstreetmap-format.js';
 
 const ATTRIBUTION = 'Data © OpenStreetMap contributors, ODbL 1.0';
 
-export const nominatimGeocode = tool('nominatim_geocode', {
+export const openstreetmapGeocode = tool('openstreetmap_geocode', {
   title: 'Geocode a place name or address',
   description:
     'Convert a place name or address to geographic coordinates and structured place data via Nominatim/OpenStreetMap. ' +
     'Accepts either a free-form query string (e.g., "Space Needle Seattle") or structured address fields (street, city, state, etc.) — ' +
     'the two modes are mutually exclusive. Returns results ordered by Nominatim relevance (importance score). ' +
     'Use countrycodes to restrict results to specific countries. ' +
-    'For exhaustive POI lists in an area, use overpass_query_nearby or overpass_query_bbox instead — ' +
+    'For exhaustive POI lists in an area, use openstreetmap_query_nearby or openstreetmap_query_bbox instead — ' +
     'Nominatim search returns best matches, not all matching objects.',
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
 
@@ -97,7 +97,7 @@ export const nominatimGeocode = tool('nominatim_geocode', {
             osm_id: z
               .number()
               .optional()
-              .describe('OSM object ID. Combine with osm_type for nominatim_lookup.'),
+              .describe('OSM object ID. Combine with osm_type for openstreetmap_lookup.'),
             lat: z.string().describe('Latitude (WGS84, as string from API).'),
             lon: z.string().describe('Longitude (WGS84, as string from API).'),
             display_name: z.string().describe('Full human-readable address string.'),

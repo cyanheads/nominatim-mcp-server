@@ -1,16 +1,16 @@
 /**
  * @fileoverview Overpass nearby query tool — finds OSM features within a radius.
- * @module mcp-server/tools/definitions/overpass-query-nearby.tool
+ * @module mcp-server/tools/definitions/openstreetmap-query-nearby.tool
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
 import { JsonRpcErrorCode } from '@cyanheads/mcp-ts-core/errors';
 import { getOverpassService } from '@/services/overpass/overpass-service.js';
-import { resolveTagInput } from './overpass-tag-input.js';
+import { resolveTagInput } from './openstreetmap-tag-input.js';
 
 const ATTRIBUTION = 'Data © OpenStreetMap contributors, ODbL 1.0';
 
-export const overpassQueryNearby = tool('overpass_query_nearby', {
+export const openstreetmapQueryNearby = tool('openstreetmap_query_nearby', {
   title: 'Find OSM features near a point',
   description:
     'Find OSM features within a radius around a geographic point via the Overpass API. ' +
@@ -81,7 +81,9 @@ export const overpassQueryNearby = tool('overpass_query_nearby', {
         z
           .object({
             osm_type: z.enum(['node', 'way', 'relation']).describe('OSM element type.'),
-            osm_id: z.number().describe('OSM element ID. Use with osm_type for nominatim_lookup.'),
+            osm_id: z
+              .number()
+              .describe('OSM element ID. Use with osm_type for openstreetmap_lookup.'),
             lat: z
               .number()
               .optional()
@@ -134,7 +136,7 @@ export const overpassQueryNearby = tool('overpass_query_nearby', {
       when: 'Overpass returned HTTP 429 — all 4 concurrent query slots are occupied.',
       retryable: true,
       recovery:
-        'Wait a few seconds and retry. Reduce concurrent calls or switch to a private Overpass instance via OVERPASS_BASE_URL.',
+        'Wait a few seconds and retry. Reduce concurrent calls or switch to a private Overpass instance via OSM_OVERPASS_BASE_URL.',
     },
   ],
 

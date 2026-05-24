@@ -1,4 +1,4 @@
-# nominatim-mcp-server — Design
+# openstreetmap-mcp-server — Design
 
 ## MCP Surface
 
@@ -6,12 +6,12 @@
 
 | Name | Description | Key Inputs | Annotations |
 |:-----|:------------|:-----------|:------------|
-| `nominatim_geocode` | Forward geocoding: convert a place name or address to coordinates and structured place data. Supports free-form and structured address input. | `query` (free-form) OR structured fields (`street`, `city`, `state`, `country`, `postalcode`); `limit`, `countrycodes`, `layer`, `featureType` | `readOnlyHint: true` |
-| `nominatim_reverse` | Reverse geocoding: convert lat/lon to the nearest address or place. Returns the closest OSM object with full address breakdown. | `lat`, `lon`, `zoom` (detail level 3–18), `layer` | `readOnlyHint: true` |
-| `nominatim_lookup` | Look up address details for specific OSM objects by their IDs. Useful when an OSM node/way/relation ID is already known. | `osm_ids` (up to 50, prefixed with N/W/R) | `readOnlyHint: true` |
-| `overpass_query_nearby` | Find OSM features within a radius around a point. The primary convenience tool for "what's near X?" spatial queries. Covers nodes, ways, and relations. | `lat`, `lon`, `radius_meters`, `amenity` (or `tag_key` + `tag_value`), `limit` | `readOnlyHint: true` |
-| `overpass_query_bbox` | Find OSM features within a bounding box. Useful for area surveys, not proximity searches. | `south`, `west`, `north`, `east`; `amenity` (or `tag_key` + `tag_value`), `limit` | `readOnlyHint: true` |
-| `overpass_query_raw` | Execute a raw Overpass QL query for advanced spatial queries the convenience tools don't cover. | `query` (Overpass QL string), `timeout` | `readOnlyHint: true` |
+| `openstreetmap_geocode` | Forward geocoding: convert a place name or address to coordinates and structured place data. Supports free-form and structured address input. | `query` (free-form) OR structured fields (`street`, `city`, `state`, `country`, `postalcode`); `limit`, `countrycodes`, `layer`, `featureType` | `readOnlyHint: true` |
+| `openstreetmap_reverse` | Reverse geocoding: convert lat/lon to the nearest address or place. Returns the closest OSM object with full address breakdown. | `lat`, `lon`, `zoom` (detail level 3–18), `layer` | `readOnlyHint: true` |
+| `openstreetmap_lookup` | Look up address details for specific OSM objects by their IDs. Useful when an OSM node/way/relation ID is already known. | `osm_ids` (up to 50, prefixed with N/W/R) | `readOnlyHint: true` |
+| `openstreetmap_query_nearby` | Find OSM features within a radius around a point. The primary convenience tool for "what's near X?" spatial queries. Covers nodes, ways, and relations. | `lat`, `lon`, `radius_meters`, `amenity` (or `tag_key` + `tag_value`), `limit` | `readOnlyHint: true` |
+| `openstreetmap_query_bbox` | Find OSM features within a bounding box. Useful for area surveys, not proximity searches. | `south`, `west`, `north`, `east`; `amenity` (or `tag_key` + `tag_value`), `limit` | `readOnlyHint: true` |
+| `openstreetmap_query_raw` | Execute a raw Overpass QL query for advanced spatial queries the convenience tools don't cover. | `query` (Overpass QL string), `timeout` | `readOnlyHint: true` |
 
 ### Resources
 
@@ -59,8 +59,8 @@ Global coverage. Read-only.
 
 | Service | Wraps | Used By |
 |:--------|:------|:--------|
-| `NominatimService` | Nominatim API (nominatim.openstreetmap.org) | `nominatim_geocode`, `nominatim_reverse`, `nominatim_lookup` |
-| `OverpassService` | Overpass API (overpass-api.de/api/interpreter) | `overpass_query_nearby`, `overpass_query_bbox`, `overpass_query_raw` |
+| `NominatimService` | Nominatim API (nominatim.openstreetmap.org) | `openstreetmap_geocode`, `openstreetmap_reverse`, `openstreetmap_lookup` |
+| `OverpassService` | Overpass API (overpass-api.de/api/interpreter) | `openstreetmap_query_nearby`, `openstreetmap_query_bbox`, `openstreetmap_query_raw` |
 
 Both services are stateless HTTP clients with retry logic and session-level result caching via `ctx.state`.
 
@@ -70,9 +70,9 @@ Both services are stateless HTTP clients with retry logic and session-level resu
 
 | Env Var | Required | Description |
 |:--------|:---------|:------------|
-| `NOMINATIM_BASE_URL` | No | Override the Nominatim endpoint (default: `https://nominatim.openstreetmap.org`). Use when running a private instance. |
-| `OVERPASS_BASE_URL` | No | Override the Overpass endpoint (default: `https://overpass-api.de/api/interpreter`). Supports mirror instances. |
-| `NOMINATIM_USER_AGENT` | No | Identifies the application to Nominatim (default: `nominatim-mcp-server/<version>`). Must be set if the default violates the operator's policy. |
+| `OSM_NOMINATIM_BASE_URL` | No | Override the Nominatim endpoint (default: `https://nominatim.openstreetmap.org`). Use when running a private instance. |
+| `OSM_OVERPASS_BASE_URL` | No | Override the Overpass endpoint (default: `https://overpass-api.de/api/interpreter`). Supports mirror instances. |
+| `OSM_USER_AGENT` | No | Identifies the application to Nominatim (default: `openstreetmap-mcp-server/<version>`). Must be set if the default violates the operator's policy. |
 
 ---
 
@@ -81,12 +81,12 @@ Both services are stateless HTTP clients with retry logic and session-level resu
 1. Config and server setup (`server-config.ts` with the three optional env vars)
 2. `NominatimService` — HTTP client, retry, response normalization, session cache
 3. `OverpassService` — HTTP client, Overpass QL builder helpers, retry, session cache
-4. `nominatim_geocode` tool
-5. `nominatim_reverse` tool
-6. `nominatim_lookup` tool
-7. `overpass_query_nearby` tool
-8. `overpass_query_bbox` tool
-9. `overpass_query_raw` tool
+4. `openstreetmap_geocode` tool
+5. `openstreetmap_reverse` tool
+6. `openstreetmap_lookup` tool
+7. `openstreetmap_query_nearby` tool
+8. `openstreetmap_query_bbox` tool
+9. `openstreetmap_query_raw` tool
 
 Each tool is independently testable after its service is in place.
 
@@ -190,7 +190,7 @@ Nodes have `lat`/`lon` directly; ways and relations have `center` (from `out cen
 
 ## Tool Design Details
 
-### `nominatim_geocode`
+### `openstreetmap_geocode`
 
 **Input:**
 
@@ -274,7 +274,7 @@ errors: [
 
 ---
 
-### `nominatim_reverse`
+### `openstreetmap_reverse`
 
 **Input:**
 
@@ -338,7 +338,7 @@ errors: [
 
 ---
 
-### `nominatim_lookup`
+### `openstreetmap_lookup`
 
 **Input:**
 
@@ -353,7 +353,7 @@ z.object({
 })
 ```
 
-**Output:** Same shape as `nominatim_geocode` (array of place results), plus `not_found` array for IDs that returned no result.
+**Output:** Same shape as `openstreetmap_geocode` (array of place results), plus `not_found` array for IDs that returned no result.
 
 **Errors:**
 
@@ -372,7 +372,7 @@ errors: [
 
 ---
 
-### `overpass_query_nearby`
+### `openstreetmap_query_nearby`
 
 The primary Overpass convenience tool. Generates an Overpass QL `around` filter internally.
 
@@ -434,7 +434,7 @@ errors: [
     code: JsonRpcErrorCode.ServiceUnavailable,
     when: 'Overpass returns HTTP 429 — all 4 concurrent query slots are occupied',
     retryable: true,
-    recovery: 'Wait a few seconds and retry. Reduce concurrent calls or switch to a private Overpass instance via OVERPASS_BASE_URL.',
+    recovery: 'Wait a few seconds and retry. Reduce concurrent calls or switch to a private Overpass instance via OSM_OVERPASS_BASE_URL.',
   },
   {
     reason: 'invalid_tag',
@@ -449,9 +449,9 @@ errors: [
 
 ---
 
-### `overpass_query_bbox`
+### `openstreetmap_query_bbox`
 
-Same shape as `overpass_query_nearby` but spatial filter is a bounding box instead of a radius.
+Same shape as `openstreetmap_query_nearby` but spatial filter is a bounding box instead of a radius.
 
 **Input:**
 
@@ -473,15 +473,15 @@ z.object({
 })
 ```
 
-**Output:** Same shape as `overpass_query_nearby`.
+**Output:** Same shape as `openstreetmap_query_nearby`.
 
-**Errors:** Same as `overpass_query_nearby` (query_timeout, rate_limited, invalid_tag — the same amenity/tag_key mutual-exclusion and both-required validation applies).
+**Errors:** Same as `openstreetmap_query_nearby` (query_timeout, rate_limited, invalid_tag — the same amenity/tag_key mutual-exclusion and both-required validation applies).
 
 **Annotations:** `readOnlyHint: true`, `openWorldHint: true`
 
 ---
 
-### `overpass_query_raw`
+### `openstreetmap_query_raw`
 
 Escape hatch for full Overpass QL expressiveness. Use for multi-type queries, union queries, relation membership, historical queries, or any spatial operation the convenience tools don't cover.
 
@@ -535,7 +535,7 @@ errors: [
     code: JsonRpcErrorCode.ServiceUnavailable,
     when: 'Overpass returns HTTP 429 — all 4 concurrent query slots are occupied',
     retryable: true,
-    recovery: 'Wait a few seconds and retry. Switch to a private Overpass instance via OVERPASS_BASE_URL for higher concurrency.',
+    recovery: 'Wait a few seconds and retry. Switch to a private Overpass instance via OSM_OVERPASS_BASE_URL for higher concurrency.',
   },
 ]
 ```
@@ -550,33 +550,33 @@ errors: [
 
 | # | Tool | Purpose |
 |:--|:-----|:--------|
-| 1 | `nominatim_geocode` | "Seattle" → `{lat: 47.6062, lon: -122.3321}` |
+| 1 | `openstreetmap_geocode` | "Seattle" → `{lat: 47.6062, lon: -122.3321}` |
 | 2 | `nws_get_forecast` (NWS server) | coordinates → weather forecast |
 
 ### Common agent workflow: reverse geocode + POI search
 
 | # | Tool | Purpose |
 |:--|:-----|:--------|
-| 1 | `nominatim_reverse` | coordinates → "Belltown, Seattle, WA" |
-| 2 | `overpass_query_nearby` | same coordinates, `amenity="pharmacy"`, `radius_meters=500` → nearby pharmacies |
+| 1 | `openstreetmap_reverse` | coordinates → "Belltown, Seattle, WA" |
+| 2 | `openstreetmap_query_nearby` | same coordinates, `amenity="pharmacy"`, `radius_meters=500` → nearby pharmacies |
 
 ### Common agent workflow: known OSM ID → details
 
 | # | Tool | Purpose |
 |:--|:-----|:--------|
-| 1 | `nominatim_lookup` | `osm_ids=["W169511257"]` → Harborview Medical Center details |
+| 1 | `openstreetmap_lookup` | `osm_ids=["W169511257"]` → Harborview Medical Center details |
 
 ---
 
 ## Design Decisions
 
-**Two services, one server.** Nominatim and Overpass are conceptually separate APIs, but they complement each other to form a complete location-resolution story. Splitting into two servers would force every agent to configure two MCP servers for what is essentially one domain. The cohesive 6-tool surface is easy to understand and the naming prefix (`nominatim_*` vs `overpass_*`) makes the source API visible without hiding it.
+**Two services, one server.** Nominatim and Overpass are conceptually separate APIs, but they complement each other to form a complete location-resolution story. Splitting into two servers would force every agent to configure two MCP servers for what is essentially one domain. The cohesive 6-tool surface is easy to understand and the unified `openstreetmap_*` prefix makes the domain clear.
 
-**`nominatim_geocode` handles both free-form and structured in one tool.** The two modes are mutually exclusive at the Nominatim API level, but they serve the same user goal (forward geocoding). One tool with clear input validation beats two tools that users have to choose between. Handler validates: `query` XOR structured fields.
+**`openstreetmap_geocode` handles both free-form and structured in one tool.** The two modes are mutually exclusive at the Nominatim API level, but they serve the same user goal (forward geocoding). One tool with clear input validation beats two tools that users have to choose between. Handler validates: `query` XOR structured fields.
 
-**No `nominatim_search_places` tool.** The Nominatim search endpoint has a "special phrases" feature (e.g., "restaurants in Berlin") that can return place-type results. This is not distinct enough from `nominatim_geocode` to warrant a separate tool — `nominatim_geocode` with a free-form query handles it. For exhaustive POI queries by area, Overpass is the right tool per Nominatim's own documentation.
+**No `openstreetmap_search_places` tool.** The Nominatim search endpoint has a "special phrases" feature (e.g., "restaurants in Berlin") that can return place-type results. This is not distinct enough from `openstreetmap_geocode` to warrant a separate tool — `openstreetmap_geocode` with a free-form query handles it. For exhaustive POI queries by area, Overpass is the right tool per Nominatim's own documentation.
 
-**`overpass_query_nearby` and `overpass_query_bbox` as separate tools** (not a single tool with a `mode` param). The two spatial filter types have meaningfully different inputs: around requires a center + radius, bbox requires four coordinates. Combining them into one tool would require either awkward mutually-exclusive groups or an opaque `mode` enum. The cognitive cost of two clearly named tools is lower than one opaque tool.
+**`openstreetmap_query_nearby` and `openstreetmap_query_bbox` as separate tools** (not a single tool with a `mode` param). The two spatial filter types have meaningfully different inputs: around requires a center + radius, bbox requires four coordinates. Combining them into one tool would require either awkward mutually-exclusive groups or an opaque `mode` enum. The cognitive cost of two clearly named tools is lower than one opaque tool.
 
 **`amenity` shortcut in Overpass convenience tools.** The `amenity` tag covers the vast majority of "what's near me?" POI queries (hospital, pharmacy, restaurant, cafe, etc.). Providing it as a dedicated parameter with a clear description avoids forcing users to learn Overpass's `tag_key`/`tag_value` pattern for the most common case. Both parameters are optional; handler validates that exactly one is provided — both-provided and neither-provided both error with `invalid_tag`.
 
@@ -590,13 +590,13 @@ errors: [
 
 **No geometry output in Nominatim tools.** The `polygon_geojson`, `polygon_svg`, etc. parameters add boundary geometry. This is useful for rendering but would bloat the tool output significantly. Deferred — add as an optional parameter if agents consistently need polygon boundaries.
 
-**`nominatim_lookup` included despite lower frequency.** When an agent workflow has an OSM ID from a prior step (e.g., from an Overpass result), lookup is the efficient path to get full Nominatim address details — a single batch request instead of a geocoding round trip. Supports up to 50 IDs per call.
+**`openstreetmap_lookup` included despite lower frequency.** When an agent workflow has an OSM ID from a prior step (e.g., from an Overpass result), lookup is the efficient path to get full Nominatim address details — a single batch request instead of a geocoding round trip. Supports up to 50 IDs per call.
 
 ---
 
 ## Known Limitations
 
-**Nominatim reverse geocoding is "closest object," not "containing polygon."** The API finds the nearest indexed OSM object, which may not be the building or parcel the coordinate is inside. In dense urban areas, the result can be a neighboring feature. This is inherent to the API — not something the server can fix. Documented in the `nominatim_reverse` tool description.
+**Nominatim reverse geocoding is "closest object," not "containing polygon."** The API finds the nearest indexed OSM object, which may not be the building or parcel the coordinate is inside. In dense urban areas, the result can be a neighboring feature. This is inherent to the API — not something the server can fix. Documented in the `openstreetmap_reverse` tool description.
 
 **Overpass results are not sorted by distance.** The `around` filter returns all features within the radius but the order is arbitrary (OSM element ID order). Agents that need nearest-first ordering must sort themselves using the returned coordinates.
 
@@ -671,12 +671,12 @@ out center tags;
 
 | Date | Decision | Rationale |
 |:-----|:---------|:----------|
-| 2026-05-23 | Two distinct API prefixes (`nominatim_*`, `overpass_*`) rather than unified `osm_*` | The two APIs have different query models, rate limits, and output shapes. Prefixing with the actual API name makes the source API explicit, which helps agents understand the operational context (rate limits, data freshness, appropriate use cases). |
+| 2026-05-23 | Unified `openstreetmap_*` prefix rather than separate `nominatim_*`/`overpass_*` prefixes | Presents a coherent domain-facing API surface under the OpenStreetMap brand. Both underlying APIs (Nominatim, Overpass) are implementation details; the tool names reflect the user's intent (geocoding, spatial queries) rather than the backend service. |
 | 2026-05-23 | Include all three Nominatim endpoints as separate tools | Search, reverse, and lookup are genuinely distinct operations with different inputs and use cases. Consolidating them under a mode enum would obscure the required-vs-optional parameter differences (e.g., `lat`/`lon` only for reverse). |
 | 2026-05-23 | Overpass convenience tools separate from raw query | Convenience tools for `around` and `bbox` cover 90% of use cases without requiring Overpass QL knowledge. The raw tool is an explicit escape hatch, not the default path. This matches the skill's "shortcut + escape hatch" pattern. |
-| 2026-05-23 | No `nominatim_details` tool (debug endpoint excluded) | Nominatim's `/details` endpoint is documented as "for debugging only" and its usage is explicitly called out as forbidden in the usage policy ("Scraping of details... may not be downloaded automatically"). Excluded. |
+| 2026-05-23 | No `openstreetmap_details` tool (debug endpoint excluded) | Nominatim's `/details` endpoint is documented as "for debugging only" and its usage is explicitly called out as forbidden in the usage policy ("Scraping of details... may not be downloaded automatically"). Excluded. |
 | 2026-05-23 | No polygon output in initial release | GeoJSON/KML polygon output for Nominatim results would add significant output size with unclear benefit in most agent workflows. Deferred until there's a demonstrated need. |
 | 2026-05-23 | `out center tags` rather than `out body` for convenience tools | `out center` normalizes the position representation across nodes, ways, and relations. `out body` for ways would return node ID arrays instead of coordinates, requiring a second `out;` step or the caller to discard position. |
 | 2026-05-23 | Session-level caching mandatory in NominatimService | The Nominatim usage policy explicitly requires caching. Given MCP servers can receive many tool calls in quick succession (agent loops), caching the same geocode query within a session is both a policy requirement and a performance benefit. |
-| 2026-05-23 | `NOMINATIM_BASE_URL` and `OVERPASS_BASE_URL` as configurable env vars | Users operating private or mirror instances (needed for high-throughput use) must be able to redirect the server without code changes. Also enables pointing at local test instances. |
+| 2026-05-23 | `OSM_NOMINATIM_BASE_URL` and `OSM_OVERPASS_BASE_URL` as configurable env vars | Users operating private or mirror instances (needed for high-throughput use) must be able to redirect the server without code changes. Also enables pointing at local test instances. |
 | 2026-05-23 | No prompts | The domain is pure data lookup — there are no recurring agent interaction patterns that benefit from a structured prompt template. Tool descriptions carry sufficient guidance. |

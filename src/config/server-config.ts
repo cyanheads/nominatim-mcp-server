@@ -20,7 +20,7 @@ function readPackageVersion(): string {
   }
 }
 
-const defaultUserAgent = `nominatim-mcp-server/${readPackageVersion()}`;
+const defaultUserAgent = `openstreetmap-mcp-server/${readPackageVersion()}`;
 
 const ServerConfigSchema = z.object({
   nominatimBaseUrl: z
@@ -45,9 +45,9 @@ let _config: ServerConfig | undefined;
 
 export function getServerConfig(): ServerConfig {
   _config ??= parseEnvConfig(ServerConfigSchema, {
-    nominatimBaseUrl: 'NOMINATIM_BASE_URL',
-    overpassBaseUrl: 'OVERPASS_BASE_URL',
-    nominatimUserAgent: 'NOMINATIM_USER_AGENT',
+    nominatimBaseUrl: 'OSM_NOMINATIM_BASE_URL',
+    overpassBaseUrl: 'OSM_OVERPASS_BASE_URL',
+    nominatimUserAgent: 'OSM_USER_AGENT',
   });
   return _config;
 }

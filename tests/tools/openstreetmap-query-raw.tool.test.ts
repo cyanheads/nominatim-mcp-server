@@ -1,11 +1,11 @@
 /**
- * @fileoverview Tests for the overpass-query-raw tool.
- * @module tests/tools/overpass-query-raw.tool.test
+ * @fileoverview Tests for the openstreetmap-query-raw tool.
+ * @module tests/tools/openstreetmap-query-raw.tool.test
  */
 
 import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { overpassQueryRaw } from '@/mcp-server/tools/definitions/overpass-query-raw.tool.js';
+import { openstreetmapQueryRaw } from '@/mcp-server/tools/definitions/openstreetmap-query-raw.tool.js';
 import type { OverpassElement, OverpassResponse } from '@/services/overpass/types.js';
 
 // --- service mock --------------------------------------------------------
@@ -44,16 +44,16 @@ const QUERY_WITHOUT_TIMEOUT =
 
 // -------------------------------------------------------------------------
 
-describe('overpassQueryRaw', () => {
+describe('openstreetmapQueryRaw', () => {
   beforeEach(() => {
     mockQuery.mockReset().mockResolvedValue(responseWithTimestamp);
   });
 
   describe('happy path', () => {
     it('returns raw elements from a valid query', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryRaw.errors });
-      const input = overpassQueryRaw.input.parse({ query: VALID_QUERY });
-      const result = await overpassQueryRaw.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      const result = await openstreetmapQueryRaw.handler(input, ctx);
 
       expect(result.total_elements).toBe(1);
       expect(result.elements).toHaveLength(1);
@@ -63,21 +63,21 @@ describe('overpassQueryRaw', () => {
     });
 
     it('injects [timeout:N] when query lacks a timeout directive', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryRaw.errors });
-      const input = overpassQueryRaw.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({
         query: QUERY_WITHOUT_TIMEOUT,
         timeout_seconds: 45,
       });
-      await overpassQueryRaw.handler(input, ctx);
+      await openstreetmapQueryRaw.handler(input, ctx);
 
       const calledQuery = mockQuery.mock.calls[0]?.[0] as string;
       expect(calledQuery).toContain('[timeout:45]');
     });
 
     it('does not inject timeout when query already includes [timeout:]', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryRaw.errors });
-      const input = overpassQueryRaw.input.parse({ query: VALID_QUERY });
-      await overpassQueryRaw.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      await openstreetmapQueryRaw.handler(input, ctx);
 
       const calledQuery = mockQuery.mock.calls[0]?.[0] as string;
       // Should preserve the original timeout, not add a second one
@@ -93,9 +93,9 @@ describe('overpassQueryRaw', () => {
         tags: { natural: 'peak' },
       }));
       mockQuery.mockResolvedValue({ ...responseWithTimestamp, elements });
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryRaw.errors });
-      const input = overpassQueryRaw.input.parse({ query: VALID_QUERY });
-      const result = await overpassQueryRaw.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      const result = await openstreetmapQueryRaw.handler(input, ctx);
       expect(result.total_elements).toBe(5);
       expect(result.elements).toHaveLength(5);
     });
@@ -104,9 +104,9 @@ describe('overpassQueryRaw', () => {
   describe('missing timestamp', () => {
     it('omits data_timestamp when osm3s is absent', async () => {
       mockQuery.mockResolvedValue(responseWithoutTimestamp);
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryRaw.errors });
-      const input = overpassQueryRaw.input.parse({ query: VALID_QUERY });
-      const result = await overpassQueryRaw.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      const result = await openstreetmapQueryRaw.handler(input, ctx);
       expect(result.data_timestamp).toBeUndefined();
     });
   });
@@ -114,9 +114,9 @@ describe('overpassQueryRaw', () => {
   describe('error paths', () => {
     it('propagates service errors (timeout, OOM, rate-limit etc.)', async () => {
       mockQuery.mockRejectedValue(new Error('Overpass query timed out'));
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryRaw.errors });
-      const input = overpassQueryRaw.input.parse({ query: VALID_QUERY });
-      await expect(overpassQueryRaw.handler(input, ctx)).rejects.toThrow(
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      await expect(openstreetmapQueryRaw.handler(input, ctx)).rejects.toThrow(
         'Overpass query timed out',
       );
     });
@@ -138,7 +138,7 @@ describe('overpassQueryRaw', () => {
         data_timestamp: '2025-03-01T12:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryRaw.format!(output);
+      const blocks = openstreetmapQueryRaw.format!(output);
       expect(blocks[0]!.type).toBe('text');
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('1 element returned');
@@ -156,7 +156,7 @@ describe('overpassQueryRaw', () => {
         total_elements: 1,
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryRaw.format!(output);
+      const blocks = openstreetmapQueryRaw.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('1 element returned');
     });
@@ -168,7 +168,7 @@ describe('overpassQueryRaw', () => {
         total_elements: 75,
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryRaw.format!(output);
+      const blocks = openstreetmapQueryRaw.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('25 more elements');
     });
@@ -179,7 +179,7 @@ describe('overpassQueryRaw', () => {
         total_elements: 1,
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryRaw.format!(output);
+      const blocks = openstreetmapQueryRaw.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).not.toContain('Data as of:');
     });

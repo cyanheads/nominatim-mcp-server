@@ -1,25 +1,25 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.cyanheads/nominatim-mcp-server",
+  "name": "io.github.cyanheads/openstreetmap-mcp-server",
   "description": "Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data.",
   "repository": {
-    "url": "https://github.com/cyanheads/nominatim-mcp-server",
+    "url": "https://github.com/cyanheads/openstreetmap-mcp-server",
     "source": "github"
   },
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://nominatim.caseyjhand.com/mcp"
+      "url": "https://openstreetmap.caseyjhand.com/mcp"
     }
   ],
-  "version": "0.1.8",
+  "version": "0.2.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@cyanheads/nominatim-mcp-server",
+      "identifier": "@cyanheads/openstreetmap-mcp-server",
       "runtimeHint": "bun",
-      "version": "0.1.8",
+      "version": "0.2.0",
       "packageArguments": [
         {
           "type": "positional",
@@ -32,21 +32,21 @@
       ],
       "environmentVariables": [
         {
-          "name": "NOMINATIM_BASE_URL",
+          "name": "OSM_NOMINATIM_BASE_URL",
           "description": "Nominatim API base URL. Override to use a private or mirror instance.",
           "format": "string",
           "isRequired": false,
           "default": "https://nominatim.openstreetmap.org"
         },
         {
-          "name": "NOMINATIM_USER_AGENT",
+          "name": "OSM_USER_AGENT",
           "description": "User-Agent sent to Nominatim and Overpass. Required by usage policy.",
           "format": "string",
           "isRequired": false,
-          "default": "nominatim-mcp-server/0.1.8"
+          "default": "openstreetmap-mcp-server/0.2.0"
         },
         {
-          "name": "OVERPASS_BASE_URL",
+          "name": "OSM_OVERPASS_BASE_URL",
           "description": "Overpass API endpoint URL. Override to use a mirror or private instance.",
           "format": "string",
           "isRequired": false,
@@ -67,9 +67,9 @@
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "@cyanheads/nominatim-mcp-server",
+      "identifier": "@cyanheads/openstreetmap-mcp-server",
       "runtimeHint": "bun",
-      "version": "0.1.8",
+      "version": "0.2.0",
       "packageArguments": [
         {
           "type": "positional",
@@ -116,21 +116,21 @@
           "default": "none"
         },
         {
-          "name": "NOMINATIM_BASE_URL",
+          "name": "OSM_NOMINATIM_BASE_URL",
           "description": "Nominatim API base URL. Override to use a private or mirror instance.",
           "format": "string",
           "isRequired": false,
           "default": "https://nominatim.openstreetmap.org"
         },
         {
-          "name": "NOMINATIM_USER_AGENT",
+          "name": "OSM_USER_AGENT",
           "description": "User-Agent sent to Nominatim and Overpass. Required by usage policy.",
           "format": "string",
           "isRequired": false,
-          "default": "nominatim-mcp-server/0.1.8"
+          "default": "openstreetmap-mcp-server/0.2.0"
         },
         {
-          "name": "OVERPASS_BASE_URL",
+          "name": "OSM_OVERPASS_BASE_URL",
           "description": "Overpass API endpoint URL. Override to use a mirror or private instance.",
           "format": "string",
           "isRequired": false,

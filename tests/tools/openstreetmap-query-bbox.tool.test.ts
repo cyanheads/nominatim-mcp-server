@@ -1,11 +1,11 @@
 /**
- * @fileoverview Tests for the overpass-query-bbox tool.
- * @module tests/tools/overpass-query-bbox.tool.test
+ * @fileoverview Tests for the openstreetmap-query-bbox tool.
+ * @module tests/tools/openstreetmap-query-bbox.tool.test
  */
 
 import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { overpassQueryBbox } from '@/mcp-server/tools/definitions/overpass-query-bbox.tool.js';
+import { openstreetmapQueryBbox } from '@/mcp-server/tools/definitions/openstreetmap-query-bbox.tool.js';
 import type { OverpassElement, OverpassPoi, OverpassResponse } from '@/services/overpass/types.js';
 
 // --- service mock --------------------------------------------------------
@@ -51,7 +51,7 @@ const mockResponse: OverpassResponse = {
 
 // -------------------------------------------------------------------------
 
-describe('overpassQueryBbox', () => {
+describe('openstreetmapQueryBbox', () => {
   beforeEach(() => {
     mockBuildBboxQuery.mockReset().mockReturnValue('[out:json]');
     mockQuery.mockReset().mockResolvedValue(mockResponse);
@@ -60,15 +60,15 @@ describe('overpassQueryBbox', () => {
 
   describe('happy path — amenity shortcut', () => {
     it('returns features within the bounding box', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
         east: -122.2,
         amenity: 'pharmacy',
       });
-      const result = await overpassQueryBbox.handler(input, ctx);
+      const result = await openstreetmapQueryBbox.handler(input, ctx);
 
       expect(result.total_found).toBe(1);
       expect(result.elements).toHaveLength(1);
@@ -83,8 +83,8 @@ describe('overpassQueryBbox', () => {
     });
 
     it('passes correct bbox parameters to buildBboxQuery', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
@@ -93,7 +93,7 @@ describe('overpassQueryBbox', () => {
         element_types: ['node'],
         timeout_seconds: 40,
       });
-      await overpassQueryBbox.handler(input, ctx);
+      await openstreetmapQueryBbox.handler(input, ctx);
       expect(mockBuildBboxQuery).toHaveBeenCalledWith({
         south: 47.5,
         west: -122.5,
@@ -109,8 +109,8 @@ describe('overpassQueryBbox', () => {
 
   describe('happy path — tag_key/tag_value', () => {
     it('uses tag_key and tag_value when amenity is absent', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
@@ -118,7 +118,7 @@ describe('overpassQueryBbox', () => {
         tag_key: 'natural',
         tag_value: 'peak',
       });
-      await overpassQueryBbox.handler(input, ctx);
+      await openstreetmapQueryBbox.handler(input, ctx);
       expect(mockBuildBboxQuery).toHaveBeenCalledWith(
         expect.objectContaining({ tagKey: 'natural', tagValue: 'peak' }),
       );
@@ -134,8 +134,8 @@ describe('overpassQueryBbox', () => {
       }));
       mockNormalizeElements.mockReturnValue(pois);
 
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
@@ -143,7 +143,7 @@ describe('overpassQueryBbox', () => {
         amenity: 'cafe',
         limit: 20,
       });
-      const result = await overpassQueryBbox.handler(input, ctx);
+      const result = await openstreetmapQueryBbox.handler(input, ctx);
       expect(result.total_found).toBe(30);
       expect(result.elements).toHaveLength(20);
       expect(result.truncated).toBe(true);
@@ -153,23 +153,23 @@ describe('overpassQueryBbox', () => {
   describe('missing timestamp fallback', () => {
     it('uses current ISO timestamp when osm3s is absent', async () => {
       mockQuery.mockResolvedValue({ version: 0.6, elements: [mockElement] });
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
         east: -122.2,
         amenity: 'cafe',
       });
-      const result = await overpassQueryBbox.handler(input, ctx);
+      const result = await openstreetmapQueryBbox.handler(input, ctx);
       expect(result.data_timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
   });
 
   describe('error paths', () => {
     it('throws invalid_tag when amenity and tag_key are combined', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
@@ -178,35 +178,35 @@ describe('overpassQueryBbox', () => {
         tag_key: 'leisure',
         tag_value: 'park',
       });
-      await expect(overpassQueryBbox.handler(input, ctx)).rejects.toMatchObject({
+      await expect(openstreetmapQueryBbox.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'invalid_tag' },
       });
     });
 
     it('throws invalid_tag when neither amenity nor tag_key is provided', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
         east: -122.2,
       });
-      await expect(overpassQueryBbox.handler(input, ctx)).rejects.toMatchObject({
+      await expect(openstreetmapQueryBbox.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'invalid_tag' },
       });
     });
 
     it('propagates service errors', async () => {
       mockQuery.mockRejectedValue(new Error('Overpass 503'));
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryBbox.errors });
-      const input = overpassQueryBbox.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
         south: 47.5,
         west: -122.5,
         north: 47.7,
         east: -122.2,
         amenity: 'cafe',
       });
-      await expect(overpassQueryBbox.handler(input, ctx)).rejects.toThrow('Overpass 503');
+      await expect(openstreetmapQueryBbox.handler(input, ctx)).rejects.toThrow('Overpass 503');
     });
   });
 
@@ -228,7 +228,7 @@ describe('overpassQueryBbox', () => {
         data_timestamp: '2025-02-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryBbox.format!(output);
+      const blocks = openstreetmapQueryBbox.format!(output);
       expect(blocks[0]!.type).toBe('text');
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('Green Pharmacy');
@@ -247,7 +247,7 @@ describe('overpassQueryBbox', () => {
         data_timestamp: '2025-02-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryBbox.format!(output);
+      const blocks = openstreetmapQueryBbox.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('50 features found');
       expect(text).toContain('results truncated');

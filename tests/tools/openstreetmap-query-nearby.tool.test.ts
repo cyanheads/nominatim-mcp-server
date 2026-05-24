@@ -1,11 +1,11 @@
 /**
- * @fileoverview Tests for the overpass-query-nearby tool.
- * @module tests/tools/overpass-query-nearby.tool.test
+ * @fileoverview Tests for the openstreetmap-query-nearby tool.
+ * @module tests/tools/openstreetmap-query-nearby.tool.test
  */
 
 import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { overpassQueryNearby } from '@/mcp-server/tools/definitions/overpass-query-nearby.tool.js';
+import { openstreetmapQueryNearby } from '@/mcp-server/tools/definitions/openstreetmap-query-nearby.tool.js';
 import type { OverpassElement, OverpassPoi, OverpassResponse } from '@/services/overpass/types.js';
 
 // --- service mock --------------------------------------------------------
@@ -52,7 +52,7 @@ const mockResponse: OverpassResponse = {
 
 // -------------------------------------------------------------------------
 
-describe('overpassQueryNearby', () => {
+describe('openstreetmapQueryNearby', () => {
   beforeEach(() => {
     mockBuildAroundQuery.mockReset().mockReturnValue('[out:json]');
     mockQuery.mockReset().mockResolvedValue(mockResponse);
@@ -61,13 +61,13 @@ describe('overpassQueryNearby', () => {
 
   describe('happy path — amenity shortcut', () => {
     it('returns nearby features for amenity query', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
         lat: 47.6,
         lon: -122.3,
         amenity: 'cafe',
       });
-      const result = await overpassQueryNearby.handler(input, ctx);
+      const result = await openstreetmapQueryNearby.handler(input, ctx);
 
       expect(result.total_found).toBe(1);
       expect(result.elements).toHaveLength(1);
@@ -84,8 +84,8 @@ describe('overpassQueryNearby', () => {
     });
 
     it('passes correct parameters to buildAroundQuery', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
         lat: 47.6,
         lon: -122.3,
         amenity: 'hospital',
@@ -93,7 +93,7 @@ describe('overpassQueryNearby', () => {
         element_types: ['node', 'way', 'relation'],
         timeout_seconds: 30,
       });
-      await overpassQueryNearby.handler(input, ctx);
+      await openstreetmapQueryNearby.handler(input, ctx);
       expect(mockBuildAroundQuery).toHaveBeenCalledWith({
         lat: 47.6,
         lon: -122.3,
@@ -108,14 +108,14 @@ describe('overpassQueryNearby', () => {
 
   describe('happy path — tag_key/tag_value', () => {
     it('uses tag_key and tag_value when amenity is absent', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
         lat: 47.6,
         lon: -122.3,
         tag_key: 'leisure',
         tag_value: 'park',
       });
-      await overpassQueryNearby.handler(input, ctx);
+      await openstreetmapQueryNearby.handler(input, ctx);
       expect(mockBuildAroundQuery).toHaveBeenCalledWith(
         expect.objectContaining({ tagKey: 'leisure', tagValue: 'park' }),
       );
@@ -131,14 +131,14 @@ describe('overpassQueryNearby', () => {
       }));
       mockNormalizeElements.mockReturnValue(pois);
 
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
         lat: 47.6,
         lon: -122.3,
         amenity: 'cafe',
         limit: 20,
       });
-      const result = await overpassQueryNearby.handler(input, ctx);
+      const result = await openstreetmapQueryNearby.handler(input, ctx);
 
       expect(result.total_found).toBe(25);
       expect(result.elements).toHaveLength(20);
@@ -149,49 +149,51 @@ describe('overpassQueryNearby', () => {
   describe('missing timestamp fallback', () => {
     it('uses current ISO timestamp when osm3s is absent', async () => {
       mockQuery.mockResolvedValue({ version: 0.6, elements: [mockElement] });
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
         lat: 47.6,
         lon: -122.3,
         amenity: 'pharmacy',
       });
-      const result = await overpassQueryNearby.handler(input, ctx);
+      const result = await openstreetmapQueryNearby.handler(input, ctx);
       expect(result.data_timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
   });
 
   describe('error paths', () => {
     it('throws invalid_tag when amenity and tag_key are combined', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
         lat: 47.6,
         lon: -122.3,
         amenity: 'cafe',
         tag_key: 'leisure',
         tag_value: 'park',
       });
-      await expect(overpassQueryNearby.handler(input, ctx)).rejects.toMatchObject({
+      await expect(openstreetmapQueryNearby.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'invalid_tag' },
       });
     });
 
     it('throws invalid_tag when neither amenity nor tag_key is provided', async () => {
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({ lat: 47.6, lon: -122.3 });
-      await expect(overpassQueryNearby.handler(input, ctx)).rejects.toMatchObject({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({ lat: 47.6, lon: -122.3 });
+      await expect(openstreetmapQueryNearby.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'invalid_tag' },
       });
     });
 
     it('propagates service errors', async () => {
       mockQuery.mockRejectedValue(new Error('Overpass unavailable'));
-      const ctx = createMockContext({ tenantId: 'test', errors: overpassQueryNearby.errors });
-      const input = overpassQueryNearby.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
         lat: 47.6,
         lon: -122.3,
         amenity: 'cafe',
       });
-      await expect(overpassQueryNearby.handler(input, ctx)).rejects.toThrow('Overpass unavailable');
+      await expect(openstreetmapQueryNearby.handler(input, ctx)).rejects.toThrow(
+        'Overpass unavailable',
+      );
     });
   });
 
@@ -213,7 +215,7 @@ describe('overpassQueryNearby', () => {
         data_timestamp: '2025-01-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryNearby.format!(output);
+      const blocks = openstreetmapQueryNearby.format!(output);
       expect(blocks[0]!.type).toBe('text');
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('Coffee House');
@@ -238,7 +240,7 @@ describe('overpassQueryNearby', () => {
         data_timestamp: '2025-01-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryNearby.format!(output);
+      const blocks = openstreetmapQueryNearby.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('100 features found');
       expect(text).toContain('results truncated');
@@ -258,7 +260,7 @@ describe('overpassQueryNearby', () => {
         data_timestamp: '2025-01-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = overpassQueryNearby.format!(output);
+      const blocks = openstreetmapQueryNearby.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('Unnamed');
     });

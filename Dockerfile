@@ -37,10 +37,10 @@ WORKDIR /usr/src/app
 ENV NODE_ENV=production
 
 # OCI image metadata (https://github.com/opencontainers/image-spec/blob/main/annotations.md)
-LABEL org.opencontainers.image.title="@cyanheads/nominatim-mcp-server"
+LABEL org.opencontainers.image.title="@cyanheads/openstreetmap-mcp-server"
 LABEL org.opencontainers.image.description="Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data via MCP. STDIO or Streamable HTTP."
 LABEL org.opencontainers.image.licenses="Apache-2.0"
-LABEL org.opencontainers.image.source="https://github.com/cyanheads/nominatim-mcp-server"
+LABEL org.opencontainers.image.source="https://github.com/cyanheads/openstreetmap-mcp-server"
 
 # Copy dependency manifests
 COPY package.json bun.lock ./
@@ -73,7 +73,7 @@ COPY --from=build /usr/src/app/dist ./dist
 # We will use this existing user for enhanced security.
 
 # Create and set permissions for the log directory, assigning ownership to the 'bun' user.
-RUN mkdir -p /var/log/nominatim-mcp-server && chown -R bun:bun /var/log/nominatim-mcp-server
+RUN mkdir -p /var/log/openstreetmap-mcp-server && chown -R bun:bun /var/log/openstreetmap-mcp-server
 
 # Switch to the non-root user
 USER bun
@@ -89,7 +89,7 @@ ENV MCP_HTTP_HOST="0.0.0.0"
 ENV MCP_TRANSPORT_TYPE="http"
 ENV MCP_SESSION_MODE="stateless"
 ENV MCP_LOG_LEVEL="info"
-ENV LOGS_DIR="/var/log/nominatim-mcp-server"
+ENV LOGS_DIR="/var/log/openstreetmap-mcp-server"
 ENV MCP_FORCE_CONSOLE_LOGGING="true"
 
 # Expose the port the server listens on

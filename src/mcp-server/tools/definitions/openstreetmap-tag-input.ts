@@ -1,6 +1,6 @@
 /**
  * @fileoverview Shared tag input validation and resolution for Overpass convenience tools.
- * @module mcp-server/tools/definitions/overpass-tag-input
+ * @module mcp-server/tools/definitions/openstreetmap-tag-input
  */
 
 /** Resolved tag key/value pair extracted from amenity shortcut or explicit tag_key/tag_value. */

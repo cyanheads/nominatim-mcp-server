@@ -1,9 +1,9 @@
-# nominatim-mcp-server - Directory Structure
+# openstreetmap-mcp-server - Directory Structure
 
-Generated on: 2026-05-24 21:53:12
+Generated on: 2026-05-24 22:55:42
 
 ```text
-nominatim-mcp-server/
+openstreetmap-mcp-server/
 ├── .claude/
 ├── .github/
 │   └── ISSUE_TEMPLATE/
@@ -114,14 +114,14 @@ nominatim-mcp-server/
 │   │   │   └── definitions/
 │   │   └── tools/
 │   │       └── definitions/
-│   │           ├── nominatim-format.ts
-│   │           ├── nominatim-geocode.tool.ts
-│   │           ├── nominatim-lookup.tool.ts
-│   │           ├── nominatim-reverse.tool.ts
-│   │           ├── overpass-query-bbox.tool.ts
-│   │           ├── overpass-query-nearby.tool.ts
-│   │           ├── overpass-query-raw.tool.ts
-│   │           └── overpass-tag-input.ts
+│   │           ├── openstreetmap-format.ts
+│   │           ├── openstreetmap-geocode.tool.ts
+│   │           ├── openstreetmap-lookup.tool.ts
+│   │           ├── openstreetmap-query-bbox.tool.ts
+│   │           ├── openstreetmap-query-nearby.tool.ts
+│   │           ├── openstreetmap-query-raw.tool.ts
+│   │           ├── openstreetmap-reverse.tool.ts
+│   │           └── openstreetmap-tag-input.ts
 │   ├── services/
 │   │   ├── nominatim/
 │   │   │   ├── nominatim-service.ts
@@ -134,12 +134,12 @@ nominatim-mcp-server/
 │   ├── prompts/
 │   ├── resources/
 │   └── tools/
-│       ├── nominatim-geocode.tool.test.ts
-│       ├── nominatim-lookup.tool.test.ts
-│       ├── nominatim-reverse.tool.test.ts
-│       ├── overpass-query-bbox.tool.test.ts
-│       ├── overpass-query-nearby.tool.test.ts
-│       └── overpass-query-raw.tool.test.ts
+│       ├── openstreetmap-geocode.tool.test.ts
+│       ├── openstreetmap-lookup.tool.test.ts
+│       ├── openstreetmap-query-bbox.tool.test.ts
+│       ├── openstreetmap-query-nearby.tool.test.ts
+│       ├── openstreetmap-query-raw.tool.test.ts
+│       └── openstreetmap-reverse.tool.test.ts
 ├── .dockerignore
 ├── .env.example
 ├── .gitignore

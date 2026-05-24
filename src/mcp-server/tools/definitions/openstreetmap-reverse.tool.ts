@@ -1,16 +1,16 @@
 /**
  * @fileoverview Reverse geocoding tool — converts coordinates to nearest address or place.
- * @module mcp-server/tools/definitions/nominatim-reverse.tool
+ * @module mcp-server/tools/definitions/openstreetmap-reverse.tool
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
 import { JsonRpcErrorCode } from '@cyanheads/mcp-ts-core/errors';
 import { getNominatimService } from '@/services/nominatim/nominatim-service.js';
-import { appendPlaceLines } from './nominatim-format.js';
+import { appendPlaceLines } from './openstreetmap-format.js';
 
 const ATTRIBUTION = 'Data © OpenStreetMap contributors, ODbL 1.0';
 
-export const nominatimReverse = tool('nominatim_reverse', {
+export const openstreetmapReverse = tool('openstreetmap_reverse', {
   title: 'Reverse geocode coordinates to an address',
   description:
     'Convert latitude/longitude coordinates to the nearest address or place name via Nominatim/OpenStreetMap. ' +
@@ -57,7 +57,7 @@ export const nominatimReverse = tool('nominatim_reverse', {
         osm_id: z
           .number()
           .optional()
-          .describe('OSM object ID. Combine with osm_type for nominatim_lookup.'),
+          .describe('OSM object ID. Combine with osm_type for openstreetmap_lookup.'),
         lat: z.string().describe('Latitude of the matched OSM object.'),
         lon: z.string().describe('Longitude of the matched OSM object.'),
         display_name: z.string().describe('Full human-readable address.'),

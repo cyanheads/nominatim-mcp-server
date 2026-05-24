@@ -1,4 +1,4 @@
-# nominatim-mcp-server
+# openstreetmap-mcp-server
 
 Geocoding, reverse geocoding, and spatial queries via OpenStreetMap Nominatim and Overpass APIs.
 

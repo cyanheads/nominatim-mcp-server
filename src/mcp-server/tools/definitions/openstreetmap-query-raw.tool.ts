@@ -1,6 +1,6 @@
 /**
  * @fileoverview Raw Overpass QL query tool — escape hatch for advanced spatial queries.
- * @module mcp-server/tools/definitions/overpass-query-raw.tool
+ * @module mcp-server/tools/definitions/openstreetmap-query-raw.tool
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
@@ -9,7 +9,7 @@ import { getOverpassService } from '@/services/overpass/overpass-service.js';
 
 const ATTRIBUTION = 'Data © OpenStreetMap contributors, ODbL 1.0';
 
-export const overpassQueryRaw = tool('overpass_query_raw', {
+export const openstreetmapQueryRaw = tool('openstreetmap_query_raw', {
   title: 'Execute a raw Overpass QL query',
   description:
     'Execute a raw Overpass QL query for advanced spatial queries that the convenience tools do not cover. ' +
@@ -18,7 +18,7 @@ export const overpassQueryRaw = tool('overpass_query_raw', {
     'The query must include [out:json]. ' +
     'Example: "[out:json][timeout:15];node[\\"natural\\"=\\"peak\\"](47.5,-122.5,47.7,-122.2);out body;" ' +
     'Validate complex queries at overpass-turbo.eu before use. ' +
-    'For simple "what\'s near X?" or "what\'s in this area?" queries, use overpass_query_nearby or overpass_query_bbox instead.',
+    'For simple "what\'s near X?" or "what\'s in this area?" queries, use openstreetmap_query_nearby or openstreetmap_query_bbox instead.',
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
 
   input: z.object({
@@ -85,7 +85,7 @@ export const overpassQueryRaw = tool('overpass_query_raw', {
       when: 'Overpass returned HTTP 429 — all 4 concurrent query slots are occupied.',
       retryable: true,
       recovery:
-        'Wait a few seconds and retry. Switch to a private Overpass instance via OVERPASS_BASE_URL for higher concurrency.',
+        'Wait a few seconds and retry. Switch to a private Overpass instance via OSM_OVERPASS_BASE_URL for higher concurrency.',
     },
   ],
 

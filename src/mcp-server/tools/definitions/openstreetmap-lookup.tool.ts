@@ -1,25 +1,25 @@
 /**
  * @fileoverview OSM ID lookup tool — fetches address details for known OSM objects.
- * @module mcp-server/tools/definitions/nominatim-lookup.tool
+ * @module mcp-server/tools/definitions/openstreetmap-lookup.tool
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
 import { JsonRpcErrorCode } from '@cyanheads/mcp-ts-core/errors';
 import { getNominatimService } from '@/services/nominatim/nominatim-service.js';
-import { appendPlaceLines } from './nominatim-format.js';
+import { appendPlaceLines } from './openstreetmap-format.js';
 
 const ATTRIBUTION = 'Data © OpenStreetMap contributors, ODbL 1.0';
 
 /** Regex for valid OSM IDs: N/W/R prefix followed by digits. */
 const OSM_ID_PATTERN = /^[NWRnwr]\d+$/;
 
-export const nominatimLookup = tool('nominatim_lookup', {
+export const openstreetmapLookup = tool('openstreetmap_lookup', {
   title: 'Look up address details for OSM objects by ID',
   description:
     'Fetch address details for one or more known OSM objects by their IDs via Nominatim. ' +
     'Each ID must be prefixed with N (node), W (way), or R (relation), e.g., "N240109189", "W50637691", "R146656". ' +
     'Up to 50 IDs per call. ' +
-    'Use when an OSM ID is already known from a prior overpass_query_nearby or overpass_query_bbox result — ' +
+    'Use when an OSM ID is already known from a prior openstreetmap_query_nearby or openstreetmap_query_bbox result — ' +
     'this is more efficient than a geocoding round trip to get the full Nominatim address record.',
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
 

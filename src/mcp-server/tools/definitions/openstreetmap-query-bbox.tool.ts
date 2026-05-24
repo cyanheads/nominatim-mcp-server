@@ -1,16 +1,16 @@
 /**
  * @fileoverview Overpass bounding box query tool — finds OSM features within a bbox.
- * @module mcp-server/tools/definitions/overpass-query-bbox.tool
+ * @module mcp-server/tools/definitions/openstreetmap-query-bbox.tool
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
 import { JsonRpcErrorCode } from '@cyanheads/mcp-ts-core/errors';
 import { getOverpassService } from '@/services/overpass/overpass-service.js';
-import { resolveTagInput } from './overpass-tag-input.js';
+import { resolveTagInput } from './openstreetmap-tag-input.js';
 
 const ATTRIBUTION = 'Data © OpenStreetMap contributors, ODbL 1.0';
 
-export const overpassQueryBbox = tool('overpass_query_bbox', {
+export const openstreetmapQueryBbox = tool('openstreetmap_query_bbox', {
   title: 'Find OSM features within a bounding box',
   description:
     'Find OSM features within a rectangular geographic area (bounding box) via the Overpass API. ' +
@@ -18,7 +18,7 @@ export const overpassQueryBbox = tool('overpass_query_bbox', {
     'Use amenity for common POI types (hospital, pharmacy, cafe, school, etc.) ' +
     'or tag_key + tag_value for other OSM categories (leisure=park, shop=supermarket, natural=peak). ' +
     'Exactly one of amenity or tag_key/tag_value must be provided. ' +
-    'For proximity searches centered on a point, use overpass_query_nearby instead.',
+    'For proximity searches centered on a point, use openstreetmap_query_nearby instead.',
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
 
   input: z.object({
@@ -74,7 +74,9 @@ export const overpassQueryBbox = tool('overpass_query_bbox', {
         z
           .object({
             osm_type: z.enum(['node', 'way', 'relation']).describe('OSM element type.'),
-            osm_id: z.number().describe('OSM element ID. Use with osm_type for nominatim_lookup.'),
+            osm_id: z
+              .number()
+              .describe('OSM element ID. Use with osm_type for openstreetmap_lookup.'),
             lat: z
               .number()
               .optional()
@@ -127,7 +129,7 @@ export const overpassQueryBbox = tool('overpass_query_bbox', {
       when: 'Overpass returned HTTP 429 — all 4 concurrent query slots are occupied.',
       retryable: true,
       recovery:
-        'Wait a few seconds and retry. Reduce concurrent calls or switch to a private Overpass instance via OVERPASS_BASE_URL.',
+        'Wait a few seconds and retry. Reduce concurrent calls or switch to a private Overpass instance via OSM_OVERPASS_BASE_URL.',
     },
   ],
 

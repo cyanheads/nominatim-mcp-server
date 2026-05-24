@@ -1,13 +1,13 @@
 {
-  "name": "@cyanheads/nominatim-mcp-server",
-  "version": "0.1.8",
-  "mcpName": "io.github.cyanheads/nominatim-mcp-server",
+  "name": "@cyanheads/openstreetmap-mcp-server",
+  "version": "0.2.0",
+  "mcpName": "io.github.cyanheads/openstreetmap-mcp-server",
   "description": "Geocode, reverse geocode, and run Overpass spatial queries on OpenStreetMap data via MCP. STDIO or Streamable HTTP.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "nominatim-mcp-server": "dist/index.js"
+    "openstreetmap-mcp-server": "dist/index.js"
   },
   "files": ["dist/", "README.md", "LICENSE", "CLAUDE.md", "Dockerfile", "server.json"],
   "scripts": {
@@ -22,7 +22,7 @@
     "list-skills": "bun run scripts/list-skills.ts",
     "lint:mcp": "bun run scripts/lint-mcp.ts",
     "lint:packaging": "bun run scripts/lint-packaging.ts",
-    "bundle": "bun run build && npx -y @anthropic-ai/mcpb pack . dist/nominatim-mcp-server.mcpb",
+    "bundle": "bun run build && npx -y @anthropic-ai/mcpb pack . dist/openstreetmap-mcp-server.mcpb",
     "changelog:build": "bun run scripts/build-changelog.ts",
     "changelog:check": "bun run scripts/build-changelog.ts --check",
     "publish-mcp": "mcp-publisher login github -token \"$(security find-generic-password -a \"$USER\" -s mcp-publisher-github-pat -w)\" && mcp-publisher publish",
@@ -36,24 +36,24 @@
     "typescript",
     "bun",
     "ai-agent",
-    "nominatim",
     "openstreetmap",
     "osm",
     "geocoding",
     "reverse-geocoding",
+    "nominatim",
     "overpass",
     "spatial",
     "geolocation"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cyanheads/nominatim-mcp-server.git"
+    "url": "git+https://github.com/cyanheads/openstreetmap-mcp-server.git"
   },
   "bugs": {
-    "url": "https://github.com/cyanheads/nominatim-mcp-server/issues"
+    "url": "https://github.com/cyanheads/openstreetmap-mcp-server/issues"
   },
-  "homepage": "https://github.com/cyanheads/nominatim-mcp-server#readme",
-  "author": "cyanheads <casey@caseyjhand.com> (https://github.com/cyanheads/nominatim-mcp-server#readme)",
+  "homepage": "https://github.com/cyanheads/openstreetmap-mcp-server#readme",
+  "author": "cyanheads <casey@caseyjhand.com> (https://github.com/cyanheads/openstreetmap-mcp-server#readme)",
   "funding": [
     {
       "type": "github",

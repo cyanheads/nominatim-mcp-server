@@ -1,11 +1,11 @@
 /**
- * @fileoverview Tests for the nominatim-reverse tool.
- * @module tests/tools/nominatim-reverse.tool.test
+ * @fileoverview Tests for the openstreetmap-reverse tool.
+ * @module tests/tools/openstreetmap-reverse.tool.test
  */
 
 import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { nominatimReverse } from '@/mcp-server/tools/definitions/nominatim-reverse.tool.js';
+import { openstreetmapReverse } from '@/mcp-server/tools/definitions/openstreetmap-reverse.tool.js';
 import type { NominatimPlace } from '@/services/nominatim/types.js';
 
 // --- service mock --------------------------------------------------------
@@ -57,7 +57,7 @@ const sparsePlace: NominatimPlace = {
 
 // -------------------------------------------------------------------------
 
-describe('nominatimReverse', () => {
+describe('openstreetmapReverse', () => {
   beforeEach(() => {
     mockReverse.mockReset();
   });
@@ -65,9 +65,9 @@ describe('nominatimReverse', () => {
   describe('happy path', () => {
     it('returns the closest OSM object for valid coordinates', async () => {
       mockReverse.mockResolvedValue(validPlace);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimReverse.errors });
-      const input = nominatimReverse.input.parse({ lat: 47.6205, lon: -122.3493 });
-      const result = await nominatimReverse.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapReverse.errors });
+      const input = openstreetmapReverse.input.parse({ lat: 47.6205, lon: -122.3493 });
+      const result = await openstreetmapReverse.handler(input, ctx);
 
       expect(result.result).toMatchObject({
         place_id: 5678,
@@ -85,15 +85,15 @@ describe('nominatimReverse', () => {
 
     it('accepts optional parameters (zoom, layer, extratags, language)', async () => {
       mockReverse.mockResolvedValue(validPlace);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimReverse.errors });
-      const input = nominatimReverse.input.parse({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapReverse.errors });
+      const input = openstreetmapReverse.input.parse({
         lat: 47.6062,
         lon: -122.3321,
         zoom: 16,
         extratags: true,
         language: 'en',
       });
-      const result = await nominatimReverse.handler(input, ctx);
+      const result = await openstreetmapReverse.handler(input, ctx);
       expect(result.result.place_id).toBe(5678);
       expect(mockReverse).toHaveBeenCalledOnce();
     });
@@ -102,9 +102,9 @@ describe('nominatimReverse', () => {
   describe('sparse upstream payload', () => {
     it('handles a result missing all optional fields', async () => {
       mockReverse.mockResolvedValue(sparsePlace);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimReverse.errors });
-      const input = nominatimReverse.input.parse({ lat: 47.6, lon: -122.3 });
-      const result = await nominatimReverse.handler(input, ctx);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapReverse.errors });
+      const input = openstreetmapReverse.input.parse({ lat: 47.6, lon: -122.3 });
+      const result = await openstreetmapReverse.handler(input, ctx);
 
       expect(result.result.place_id).toBe(1111);
       expect(result.result.name).toBeUndefined();
@@ -116,18 +116,18 @@ describe('nominatimReverse', () => {
   describe('error paths', () => {
     it('throws no_coverage when Nominatim returns an error field', async () => {
       mockReverse.mockResolvedValue(noDataPlace);
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimReverse.errors });
-      const input = nominatimReverse.input.parse({ lat: 0, lon: 0 });
-      await expect(nominatimReverse.handler(input, ctx)).rejects.toMatchObject({
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapReverse.errors });
+      const input = openstreetmapReverse.input.parse({ lat: 0, lon: 0 });
+      await expect(openstreetmapReverse.handler(input, ctx)).rejects.toMatchObject({
         data: { reason: 'no_coverage' },
       });
     });
 
     it('propagates service errors', async () => {
       mockReverse.mockRejectedValue(new Error('ServiceUnavailable'));
-      const ctx = createMockContext({ tenantId: 'test', errors: nominatimReverse.errors });
-      const input = nominatimReverse.input.parse({ lat: 47.6, lon: -122.3 });
-      await expect(nominatimReverse.handler(input, ctx)).rejects.toThrow('ServiceUnavailable');
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapReverse.errors });
+      const input = openstreetmapReverse.input.parse({ lat: 47.6, lon: -122.3 });
+      await expect(openstreetmapReverse.handler(input, ctx)).rejects.toThrow('ServiceUnavailable');
     });
   });
 
@@ -154,7 +154,7 @@ describe('nominatimReverse', () => {
         },
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = nominatimReverse.format!(output);
+      const blocks = openstreetmapReverse.format!(output);
       expect(blocks[0]!.type).toBe('text');
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('Space Needle');
@@ -176,7 +176,7 @@ describe('nominatimReverse', () => {
         },
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
-      const blocks = nominatimReverse.format!(output);
+      const blocks = openstreetmapReverse.format!(output);
       const text = (blocks[0] as { text: string }).text;
       expect(text).toContain('1111');
       expect(text).toContain('47.6');
