@@ -1,19 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "cyanheads/nominatim-mcp-server",
+  "name": "io.github.cyanheads/nominatim-mcp-server",
   "description": "Geocoding, reverse geocoding, and spatial queries via OpenStreetMap Nominatim and Overpass",
   "repository": {
     "url": "https://github.com/cyanheads/nominatim-mcp-server",
     "source": "github"
   },
-  "version": "0.1.2",
+  "version": "0.1.3",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@cyanheads/nominatim-mcp-server",
       "runtimeHint": "node",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "packageArguments": [
         {
           "type": "positional",
@@ -37,7 +37,7 @@
           "description": "User-Agent sent to Nominatim. Required by Nominatim usage policy.",
           "format": "string",
           "isRequired": false,
-          "default": "nominatim-mcp-server/0.1.2"
+          "default": "nominatim-mcp-server/0.1.3"
         },
         {
           "name": "OVERPASS_BASE_URL",
@@ -63,7 +63,7 @@
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@cyanheads/nominatim-mcp-server",
       "runtimeHint": "node",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "packageArguments": [
         {
           "type": "positional",
@@ -115,7 +115,7 @@
           "description": "User-Agent sent to Nominatim. Required by Nominatim usage policy.",
           "format": "string",
           "isRequired": false,
-          "default": "nominatim-mcp-server/0.1.2"
+          "default": "nominatim-mcp-server/0.1.3"
         },
         {
           "name": "OVERPASS_BASE_URL",

@@ -37,8 +37,9 @@ WORKDIR /usr/src/app
 ENV NODE_ENV=production
 
 # OCI image metadata (https://github.com/opencontainers/image-spec/blob/main/annotations.md)
-LABEL org.opencontainers.image.title="nominatim-mcp-server"
-LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.title="@cyanheads/nominatim-mcp-server"
+LABEL org.opencontainers.image.description="MCP server for OpenStreetMap Nominatim and Overpass — geocoding, reverse geocoding, and spatial queries"
+LABEL org.opencontainers.image.source="https://github.com/cyanheads/nominatim-mcp-server"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 
 # Copy dependency manifests
