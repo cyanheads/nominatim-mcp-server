@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: openstreetmap-mcp-server
+abstract: "Model Context Protocol (MCP) server for OpenStreetMap, providing geocoding, reverse geocoding, spatial queries, and Overpass API access."
+type: software
+authors:
+  - family-names: Hand
+    given-names: Casey
+    orcid: "https://orcid.org/0009-0009-3726-568X"
+repository-code: "https://github.com/cyanheads/openstreetmap-mcp-server"
+license: Apache-2.0
+keywords:
+  - mcp
+  - model-context-protocol
+  - openstreetmap
+  - geocoding
+  - spatial-data
+  - overpass
