@@ -3,7 +3,7 @@
  * @module tests/tools/openstreetmap-query-nearby.tool.test
  */
 
-import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
+import { createMockContext, getEnrichment } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openstreetmapQueryNearby } from '@/mcp-server/tools/definitions/openstreetmap-query-nearby.tool.js';
 import type { OverpassElement, OverpassPoi, OverpassResponse } from '@/services/overpass/types.js';
@@ -74,7 +74,6 @@ describe('openstreetmapQueryNearby', () => {
       });
       const result = await openstreetmapQueryNearby.handler(input, ctx);
 
-      expect(result.total_found).toBe(1);
       expect(result.elements).toHaveLength(1);
       expect(result.elements[0]).toMatchObject({
         osm_type: 'node',
@@ -83,10 +82,15 @@ describe('openstreetmapQueryNearby', () => {
         lon: -122.3442,
         name: 'Coffee House',
       });
-      expect(result.truncated).toBe(false);
       expect(result.data_timestamp).toBe('2025-01-01T00:00:00Z');
       expect(result.attribution).toContain('OpenStreetMap');
       expect(result.elements[0]!.distance_meters).toBeGreaterThan(0);
+
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.effectiveTag).toBe('amenity=cafe');
+      expect(enrichment.totalFound).toBe(1);
+      expect(enrichment.truncated).toBe(false);
+      expect(enrichment.notice).toBeUndefined();
     });
 
     it('passes correct parameters to buildAroundQuery', async () => {
@@ -146,9 +150,10 @@ describe('openstreetmapQueryNearby', () => {
       });
       const result = await openstreetmapQueryNearby.handler(input, ctx);
 
-      expect(result.total_found).toBe(25);
       expect(result.elements).toHaveLength(20);
-      expect(result.truncated).toBe(true);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.totalFound).toBe(25);
+      expect(enrichment.truncated).toBe(true);
     });
   });
 
@@ -246,8 +251,9 @@ describe('openstreetmapQueryNearby', () => {
       const input = openstreetmapQueryNearby.input.parse({ ...center, amenity: 'cafe', limit: 2 });
       const result = await openstreetmapQueryNearby.handler(input, ctx);
 
-      expect(result.total_found).toBe(5);
-      expect(result.truncated).toBe(true);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.totalFound).toBe(5);
+      expect(enrichment.truncated).toBe(true);
       expect(result.elements.map((e) => e.name)).toEqual(['Nearest', 'D']);
     });
 
@@ -276,6 +282,34 @@ describe('openstreetmapQueryNearby', () => {
       expect(result.elements[0]!.distance_meters).toBeGreaterThan(0);
       expect(result.elements[1]!.name).toBe('NoCoord');
       expect(result.elements[1]!.distance_meters).toBeUndefined();
+    });
+  });
+
+  describe('enrichment', () => {
+    it('echoes effective tag via enrichment', async () => {
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
+        lat: 47.6,
+        lon: -122.3,
+        tag_key: 'leisure',
+        tag_value: 'park',
+      });
+      await openstreetmapQueryNearby.handler(input, ctx);
+      expect(getEnrichment(ctx).effectiveTag).toBe('leisure=park');
+    });
+
+    it('sets notice when no results are returned', async () => {
+      mockNormalizeElements.mockReturnValue([]);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
+        lat: 47.6,
+        lon: -122.3,
+        amenity: 'atm',
+      });
+      await openstreetmapQueryNearby.handler(input, ctx);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.effectiveTag).toBe('amenity=atm');
+      expect(enrichment.notice).toContain('No amenity=atm features found');
     });
   });
 
@@ -343,8 +377,6 @@ describe('openstreetmapQueryNearby', () => {
             tags: { amenity: 'cafe', name: 'Coffee House' },
           },
         ],
-        total_found: 1,
-        truncated: false,
         data_timestamp: '2025-01-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
@@ -359,7 +391,7 @@ describe('openstreetmapQueryNearby', () => {
       expect(text).toContain('OpenStreetMap');
     });
 
-    it('renders truncation notice when truncated', () => {
+    it('renders the returned count in the header', () => {
       const output = {
         elements: [
           {
@@ -368,15 +400,12 @@ describe('openstreetmapQueryNearby', () => {
             tags: { amenity: 'cafe' },
           },
         ],
-        total_found: 100,
-        truncated: true,
         data_timestamp: '2025-01-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
       const blocks = openstreetmapQueryNearby.format!(output);
       const text = (blocks[0] as { text: string }).text;
-      expect(text).toContain('100 features found');
-      expect(text).toContain('results truncated');
+      expect(text).toContain('1 feature returned');
     });
 
     it('renders the distance line when distance_meters is present', () => {
@@ -392,8 +421,6 @@ describe('openstreetmapQueryNearby', () => {
             tags: { amenity: 'cafe' },
           },
         ],
-        total_found: 1,
-        truncated: false,
         data_timestamp: '2025-01-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
@@ -412,8 +439,6 @@ describe('openstreetmapQueryNearby', () => {
             tags: { amenity: 'bench' },
           },
         ],
-        total_found: 1,
-        truncated: false,
         data_timestamp: '2025-01-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };

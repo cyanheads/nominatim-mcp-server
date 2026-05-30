@@ -3,7 +3,7 @@
  * @module tests/tools/openstreetmap-query-raw.tool.test
  */
 
-import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
+import { createMockContext, getEnrichment } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openstreetmapQueryRaw } from '@/mcp-server/tools/definitions/openstreetmap-query-raw.tool.js';
 import type { OverpassElement, OverpassResponse } from '@/services/overpass/types.js';
@@ -60,6 +60,10 @@ describe('openstreetmapQueryRaw', () => {
       expect(result.elements[0]).toMatchObject({ type: 'node', id: 987654321 });
       expect(result.data_timestamp).toBe('2025-03-01T12:00:00Z');
       expect(result.attribution).toContain('OpenStreetMap');
+
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.effectiveQuery).toContain('[out:json]');
+      expect(enrichment.notice).toBeUndefined();
     });
 
     it('injects [timeout:N] when query lacks a timeout directive', async () => {
@@ -98,6 +102,29 @@ describe('openstreetmapQueryRaw', () => {
       const result = await openstreetmapQueryRaw.handler(input, ctx);
       expect(result.total_elements).toBe(5);
       expect(result.elements).toHaveLength(5);
+    });
+  });
+
+  describe('enrichment', () => {
+    it('echoes the effective query (with injected timeout)', async () => {
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({
+        query: QUERY_WITHOUT_TIMEOUT,
+        timeout_seconds: 45,
+      });
+      await openstreetmapQueryRaw.handler(input, ctx);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.effectiveQuery).toContain('[timeout:45]');
+    });
+
+    it('sets notice when no elements are returned', async () => {
+      mockQuery.mockResolvedValue({ ...responseWithTimestamp, elements: [] });
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      await openstreetmapQueryRaw.handler(input, ctx);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.notice).toBeDefined();
+      expect(enrichment.notice).toContain('No elements returned');
     });
   });
 

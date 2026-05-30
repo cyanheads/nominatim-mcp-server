@@ -56,6 +56,20 @@ export const openstreetmapQueryRaw = tool('openstreetmap_query_raw', {
       .describe('Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0.'),
   }),
 
+  // Agent-facing context: the effective query sent and empty-result guidance.
+  // Reaches both structuredContent and content[] without a format() entry.
+  enrichment: {
+    effectiveQuery: z
+      .string()
+      .describe('The Overpass QL string as sent to the API (after any timeout injection).'),
+    notice: z
+      .string()
+      .optional()
+      .describe(
+        'Guidance when no elements were returned — e.g., check query syntax or broaden the filter. Absent when results were returned.',
+      ),
+  },
+
   errors: [
     {
       reason: 'query_error',
@@ -114,6 +128,13 @@ export const openstreetmapQueryRaw = tool('openstreetmap_query_raw', {
     const dataTimestamp = response.osm3s?.timestamp_osm_base;
 
     ctx.log.info('Overpass raw results', { count: response.elements.length });
+
+    ctx.enrich({ effectiveQuery: ql });
+    if (response.elements.length === 0) {
+      ctx.enrich.notice(
+        'No elements returned. Verify query syntax, check the bbox or around filter bounds, and test at overpass-turbo.eu.',
+      );
+    }
 
     return {
       elements: response.elements as Record<string, unknown>[],

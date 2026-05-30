@@ -3,7 +3,7 @@
  * @module tests/tools/openstreetmap-query-bbox.tool.test
  */
 
-import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
+import { createMockContext, getEnrichment } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openstreetmapQueryBbox } from '@/mcp-server/tools/definitions/openstreetmap-query-bbox.tool.js';
 import type { OverpassElement, OverpassPoi, OverpassResponse } from '@/services/overpass/types.js';
@@ -70,16 +70,18 @@ describe('openstreetmapQueryBbox', () => {
       });
       const result = await openstreetmapQueryBbox.handler(input, ctx);
 
-      expect(result.total_found).toBe(1);
       expect(result.elements).toHaveLength(1);
       expect(result.elements[0]).toMatchObject({
         osm_type: 'way',
         osm_id: 444555666,
         name: 'Green Pharmacy',
       });
-      expect(result.truncated).toBe(false);
       expect(result.data_timestamp).toBe('2025-02-01T00:00:00Z');
       expect(result.attribution).toContain('OpenStreetMap');
+
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.totalFound).toBe(1);
+      expect(enrichment.truncated).toBe(false);
     });
 
     it('passes correct bbox parameters to buildBboxQuery', async () => {
@@ -144,9 +146,42 @@ describe('openstreetmapQueryBbox', () => {
         limit: 20,
       });
       const result = await openstreetmapQueryBbox.handler(input, ctx);
-      expect(result.total_found).toBe(30);
       expect(result.elements).toHaveLength(20);
-      expect(result.truncated).toBe(true);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.totalFound).toBe(30);
+      expect(enrichment.truncated).toBe(true);
+    });
+  });
+
+  describe('enrichment', () => {
+    it('echoes effective tag via enrichment for amenity shortcut', async () => {
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
+        south: 47.5,
+        west: -122.5,
+        north: 47.7,
+        east: -122.2,
+        amenity: 'pharmacy',
+      });
+      await openstreetmapQueryBbox.handler(input, ctx);
+      expect(getEnrichment(ctx).effectiveTag).toBe('amenity=pharmacy');
+    });
+
+    it('sets notice when no results are returned', async () => {
+      mockNormalizeElements.mockReturnValue([]);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
+        south: 47.5,
+        west: -122.5,
+        north: 47.7,
+        east: -122.2,
+        tag_key: 'natural',
+        tag_value: 'volcano',
+      });
+      await openstreetmapQueryBbox.handler(input, ctx);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.effectiveTag).toBe('natural=volcano');
+      expect(enrichment.notice).toContain('No natural=volcano features found');
     });
   });
 
@@ -223,8 +258,6 @@ describe('openstreetmapQueryBbox', () => {
             tags: { amenity: 'pharmacy', name: 'Green Pharmacy' },
           },
         ],
-        total_found: 1,
-        truncated: false,
         data_timestamp: '2025-02-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
@@ -239,18 +272,15 @@ describe('openstreetmapQueryBbox', () => {
       expect(text).toContain('OpenStreetMap');
     });
 
-    it('renders truncation notice', () => {
+    it('renders the returned count in the header', () => {
       const output = {
         elements: [{ osm_type: 'node' as const, osm_id: 1, tags: { amenity: 'cafe' } }],
-        total_found: 50,
-        truncated: true,
         data_timestamp: '2025-02-01T00:00:00Z',
         attribution: 'Data © OpenStreetMap contributors, ODbL 1.0',
       };
       const blocks = openstreetmapQueryBbox.format!(output);
       const text = (blocks[0] as { text: string }).text;
-      expect(text).toContain('50 features found');
-      expect(text).toContain('results truncated');
+      expect(text).toContain('1 feature returned');
     });
   });
 });

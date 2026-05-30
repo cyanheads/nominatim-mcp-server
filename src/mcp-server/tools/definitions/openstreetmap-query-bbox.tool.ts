@@ -94,19 +94,37 @@ export const openstreetmapQueryBbox = tool('openstreetmap_query_bbox', {
           .describe('A single matching OSM feature.'),
       )
       .describe('Matching OSM features within the bounding box, up to the limit.'),
-    total_found: z
-      .number()
-      .describe('Total features returned by Overpass before limit truncation.'),
-    truncated: z
-      .boolean()
-      .describe(
-        'True if results were cut at the limit. Reduce bbox area or add more specific tags to narrow the result set.',
-      ),
     data_timestamp: z.string().describe('OSM data freshness timestamp from the Overpass response.'),
     attribution: z
       .string()
       .describe('Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0.'),
   }),
+
+  // Agent-facing context: resolved tag filter, result-set counts, and empty-result guidance.
+  // Reaches both structuredContent and content[] without a format() entry.
+  enrichment: {
+    effectiveTag: z
+      .string()
+      .describe('The OSM tag filter applied (key=value, e.g. "amenity=cafe" or "leisure=park").'),
+    totalFound: z.number().describe('Total features returned by Overpass before limit truncation.'),
+    truncated: z
+      .boolean()
+      .describe(
+        'True if results were cut at the limit. Reduce bbox area or add more specific tags to narrow the result set.',
+      ),
+    notice: z
+      .string()
+      .optional()
+      .describe(
+        'Guidance when no features were found — e.g., try a different bounding box or tag. Absent when results were returned.',
+      ),
+  },
+
+  enrichmentTrailer: {
+    effectiveTag: { label: 'Tag Filter' },
+    totalFound: { label: 'Total Found' },
+    truncated: { label: 'Results Truncated' },
+  },
 
   errors: [
     {
@@ -170,18 +188,28 @@ export const openstreetmapQueryBbox = tool('openstreetmap_query_bbox', {
       returned: limited.length,
     });
 
+    ctx.enrich({
+      effectiveTag: `${tagKey}=${tagValue}`,
+      totalFound: allPois.length,
+      truncated: allPois.length > input.limit,
+    });
+    if (limited.length === 0) {
+      ctx.enrich.notice(
+        `No ${tagKey}=${tagValue} features found in the specified bounding box. Try a larger bbox, a different tag, or verify the coordinates.`,
+      );
+    }
+
     return {
       elements: limited,
-      total_found: allPois.length,
-      truncated: allPois.length > input.limit,
       data_timestamp: dataTimestamp,
       attribution: ATTRIBUTION,
     };
   },
 
   format: (result) => {
+    const count = result.elements.length;
     const lines: string[] = [
-      `**${result.total_found} feature${result.total_found === 1 ? '' : 's'} found**${result.truncated ? ` (showing first ${result.elements.length} — results truncated)` : ''}`,
+      `**${count} feature${count === 1 ? '' : 's'} returned**`,
       `**Data as of:** ${result.data_timestamp}`,
       '',
     ];
