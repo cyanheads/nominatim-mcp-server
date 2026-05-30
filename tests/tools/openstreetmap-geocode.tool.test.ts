@@ -3,7 +3,7 @@
  * @module tests/tools/openstreetmap-geocode.tool.test
  */
 
-import { createMockContext } from '@cyanheads/mcp-ts-core/testing';
+import { createMockContext, getEnrichment } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openstreetmapGeocode } from '@/mcp-server/tools/definitions/openstreetmap-geocode.tool.js';
 import type { NominatimPlace } from '@/services/nominatim/types.js';
@@ -121,6 +121,40 @@ describe('openstreetmapGeocode', () => {
       expect(r.osm_type).toBeUndefined();
       expect(r.address).toBeUndefined();
       expect(r.extratags).toBeUndefined();
+    });
+  });
+
+  describe('enrichment', () => {
+    it('echoes free-form query as effectiveQuery', async () => {
+      mockSearch.mockResolvedValue([minimalPlace]);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ query: 'Space Needle Seattle' });
+      await openstreetmapGeocode.handler(input, ctx);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.effectiveQuery).toBe('Space Needle Seattle');
+    });
+
+    it('reconstructs effectiveQuery from structured address fields', async () => {
+      mockSearch.mockResolvedValue([minimalPlace]);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({
+        city: 'Seattle',
+        state: 'Washington',
+        country: 'US',
+      });
+      await openstreetmapGeocode.handler(input, ctx);
+      const enrichment = getEnrichment(ctx);
+      expect(enrichment.effectiveQuery).toBe('Seattle, Washington, US');
+    });
+
+    it('excludes undefined/empty structured fields from effectiveQuery', async () => {
+      mockSearch.mockResolvedValue([minimalPlace]);
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapGeocode.errors });
+      const input = openstreetmapGeocode.input.parse({ city: 'Seattle' });
+      await openstreetmapGeocode.handler(input, ctx);
+      const enrichment = getEnrichment(ctx);
+      // Only 'Seattle' — other fields are undefined and should be filtered out
+      expect(enrichment.effectiveQuery).toBe('Seattle');
     });
   });
 

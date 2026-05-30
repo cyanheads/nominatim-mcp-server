@@ -147,6 +147,16 @@ export const openstreetmapGeocode = tool('openstreetmap_geocode', {
       .describe('Required data attribution: Data © OpenStreetMap contributors, ODbL 1.0.'),
   }),
 
+  // Agent-facing context: the effective query sent to Nominatim.
+  // Reaches both structuredContent and content[] without a format() entry.
+  enrichment: {
+    effectiveQuery: z
+      .string()
+      .describe(
+        'The effective query sent to Nominatim — the free-form query string, or a reconstructed string from the provided structured address fields.',
+      ),
+  },
+
   errors: [
     {
       reason: 'no_results',
@@ -219,6 +229,13 @@ export const openstreetmapGeocode = tool('openstreetmap_geocode', {
     }
 
     ctx.log.info('Geocode results', { count: results.length });
+
+    const effectiveQuery = input.query
+      ? input.query
+      : [input.street, input.city, input.county, input.state, input.country, input.postalcode]
+          .filter(Boolean)
+          .join(', ');
+    ctx.enrich({ effectiveQuery });
 
     return {
       results: results.map((r) => ({
