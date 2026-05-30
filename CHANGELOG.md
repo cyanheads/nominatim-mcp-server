@@ -2,6 +2,10 @@
 
 All notable changes to this project. Each entry links to its full per-version file in [changelog/](changelog/).
 
+## [0.2.4](changelog/0.2.x/0.2.4.md) — 2026-05-30
+
+Overpass fail-fast on deterministic failures, recovery hints populated, HTTP 400 as ValidationError, geocode effectiveQuery enrichment
+
 ## [0.2.3](changelog/0.2.x/0.2.3.md) — 2026-05-30
 
 enrichment adoption: geocode/query tools surface tag echoes, true totals, truncation, and empty-result guidance via structuredContent and content[]

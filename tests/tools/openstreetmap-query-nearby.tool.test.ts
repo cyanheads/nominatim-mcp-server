@@ -3,6 +3,7 @@
  * @module tests/tools/openstreetmap-query-nearby.tool.test
  */
 
+import { JsonRpcErrorCode, McpError } from '@cyanheads/mcp-ts-core/errors';
 import { createMockContext, getEnrichment } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openstreetmapQueryNearby } from '@/mcp-server/tools/definitions/openstreetmap-query-nearby.tool.js';
@@ -350,6 +351,18 @@ describe('openstreetmapQueryNearby', () => {
       });
     });
 
+    it('throws invalid_tag when tag_key is provided without tag_value', async () => {
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
+        lat: 47.6,
+        lon: -122.3,
+        tag_key: 'leisure',
+      });
+      await expect(openstreetmapQueryNearby.handler(input, ctx)).rejects.toMatchObject({
+        data: { reason: 'invalid_tag' },
+      });
+    });
+
     it('propagates service errors', async () => {
       mockQuery.mockRejectedValue(new Error('Overpass unavailable'));
       const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
@@ -361,6 +374,65 @@ describe('openstreetmapQueryNearby', () => {
       await expect(openstreetmapQueryNearby.handler(input, ctx)).rejects.toThrow(
         'Overpass unavailable',
       );
+    });
+
+    it('remaps query_timeout service error to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(JsonRpcErrorCode.Timeout, 'Overpass query timed out: runtime error', {
+          reason: 'query_timeout',
+        }),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
+        lat: 47.6,
+        lon: -122.3,
+        amenity: 'cafe',
+      });
+      const err = await openstreetmapQueryNearby.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('query_timeout');
+      expect(err.data.recovery?.hint).toBeDefined();
+      expect(typeof err.data.recovery.hint).toBe('string');
+    });
+
+    it('remaps rate_limited service error to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(
+          JsonRpcErrorCode.ServiceUnavailable,
+          'Overpass API returned HTTP 429 — all query slots occupied.',
+          { reason: 'rate_limited' },
+        ),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
+        lat: 47.6,
+        lon: -122.3,
+        amenity: 'cafe',
+      });
+      const err = await openstreetmapQueryNearby.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('rate_limited');
+      expect(err.data.recovery?.hint).toBeDefined();
+    });
+
+    it('remaps result_too_large service error to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(
+          JsonRpcErrorCode.ServiceUnavailable,
+          'Overpass ran out of memory: runtime error',
+          { reason: 'result_too_large' },
+        ),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryNearby.errors });
+      const input = openstreetmapQueryNearby.input.parse({
+        lat: 47.6,
+        lon: -122.3,
+        amenity: 'cafe',
+      });
+      const err = await openstreetmapQueryNearby.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('result_too_large');
+      expect(err.data.recovery?.hint).toBeDefined();
     });
   });
 

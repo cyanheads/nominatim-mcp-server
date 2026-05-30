@@ -20,7 +20,7 @@ export function resolveTagInput(input: {
   const hasTagValue = Boolean(input.tag_value?.trim());
 
   if (hasAmenity && (hasTagKey || hasTagValue)) return { error: 'both' };
-  if (!hasAmenity && !hasTagKey) return { error: 'neither' };
+  if (!hasAmenity && (!hasTagKey || !hasTagValue)) return { error: 'neither' };
 
   return {
     tagKey: hasAmenity ? 'amenity' : (input.tag_key ?? ''),

@@ -3,6 +3,7 @@
  * @module tests/tools/openstreetmap-query-bbox.tool.test
  */
 
+import { JsonRpcErrorCode, McpError } from '@cyanheads/mcp-ts-core/errors';
 import { createMockContext, getEnrichment } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openstreetmapQueryBbox } from '@/mcp-server/tools/definitions/openstreetmap-query-bbox.tool.js';
@@ -218,6 +219,20 @@ describe('openstreetmapQueryBbox', () => {
       });
     });
 
+    it('throws invalid_tag when tag_key is provided without tag_value', async () => {
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
+        south: 47.5,
+        west: -122.5,
+        north: 47.7,
+        east: -122.2,
+        tag_key: 'leisure',
+      });
+      await expect(openstreetmapQueryBbox.handler(input, ctx)).rejects.toMatchObject({
+        data: { reason: 'invalid_tag' },
+      });
+    });
+
     it('throws invalid_tag when neither amenity nor tag_key is provided', async () => {
       const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
       const input = openstreetmapQueryBbox.input.parse({
@@ -242,6 +257,49 @@ describe('openstreetmapQueryBbox', () => {
         amenity: 'cafe',
       });
       await expect(openstreetmapQueryBbox.handler(input, ctx)).rejects.toThrow('Overpass 503');
+    });
+
+    it('remaps query_timeout service error to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(JsonRpcErrorCode.Timeout, 'Overpass query timed out: runtime error', {
+          reason: 'query_timeout',
+        }),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
+        south: 47.5,
+        west: -122.5,
+        north: 47.7,
+        east: -122.2,
+        amenity: 'cafe',
+      });
+      const err = await openstreetmapQueryBbox.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('query_timeout');
+      expect(err.data.recovery?.hint).toBeDefined();
+      expect(typeof err.data.recovery.hint).toBe('string');
+    });
+
+    it('remaps result_too_large service error to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(
+          JsonRpcErrorCode.ServiceUnavailable,
+          'Overpass ran out of memory: runtime error',
+          { reason: 'result_too_large' },
+        ),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryBbox.errors });
+      const input = openstreetmapQueryBbox.input.parse({
+        south: 47.5,
+        west: -122.5,
+        north: 47.7,
+        east: -122.2,
+        amenity: 'cafe',
+      });
+      const err = await openstreetmapQueryBbox.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('result_too_large');
+      expect(err.data.recovery?.hint).toBeDefined();
     });
   });
 

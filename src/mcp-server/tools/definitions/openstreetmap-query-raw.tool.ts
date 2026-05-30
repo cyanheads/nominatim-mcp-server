@@ -4,7 +4,7 @@
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
-import { JsonRpcErrorCode } from '@cyanheads/mcp-ts-core/errors';
+import { JsonRpcErrorCode, McpError } from '@cyanheads/mcp-ts-core/errors';
 import { getOverpassService } from '@/services/overpass/overpass-service.js';
 
 const ATTRIBUTION = 'Data © OpenStreetMap contributors, ODbL 1.0';
@@ -82,7 +82,7 @@ export const openstreetmapQueryRaw = tool('openstreetmap_query_raw', {
       reason: 'query_timeout',
       code: JsonRpcErrorCode.Timeout,
       when: 'The query exceeded its timeout (Overpass runtime error in response body).',
-      retryable: true,
+      retryable: false,
       recovery:
         'Add [timeout:N] to the query string with a higher value, or simplify the query (smaller bbox, fewer element types, more specific tags).',
     },
@@ -123,7 +123,29 @@ export const openstreetmapQueryRaw = tool('openstreetmap_query_raw', {
     ctx.log.info('Overpass raw query', { queryLength: ql.length });
 
     const service = getOverpassService();
-    const response = await service.query(ql, ctx);
+    const response = await service.query(ql, ctx).catch((err) => {
+      if (err instanceof McpError) {
+        const data = err.data as Record<string, unknown> | undefined;
+        const reason = data?.reason as string | undefined;
+        if (!reason) {
+          // fetchWithTimeout throws without a reason for HTTP status errors — remap by statusCode
+          if (data?.statusCode === 400) {
+            throw ctx.fail('query_error', err.message, { ...ctx.recoveryFor('query_error') });
+          }
+          if (data?.statusCode === 429) {
+            throw ctx.fail('rate_limited', err.message, { ...ctx.recoveryFor('rate_limited') });
+          }
+        } else if (
+          reason === 'query_error' ||
+          reason === 'query_timeout' ||
+          reason === 'result_too_large' ||
+          reason === 'rate_limited'
+        ) {
+          throw ctx.fail(reason, err.message, { ...ctx.recoveryFor(reason) });
+        }
+      }
+      throw err;
+    });
 
     const dataTimestamp = response.osm3s?.timestamp_osm_base;
 

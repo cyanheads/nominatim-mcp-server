@@ -4,7 +4,7 @@
  */
 
 import { tool, z } from '@cyanheads/mcp-ts-core';
-import { JsonRpcErrorCode } from '@cyanheads/mcp-ts-core/errors';
+import { JsonRpcErrorCode, McpError } from '@cyanheads/mcp-ts-core/errors';
 import { getOverpassService } from '@/services/overpass/overpass-service.js';
 import { resolveTagInput } from './openstreetmap-tag-input.js';
 
@@ -132,15 +132,22 @@ export const openstreetmapQueryBbox = tool('openstreetmap_query_bbox', {
       code: JsonRpcErrorCode.ValidationError,
       when: 'Both amenity and tag_key/tag_value are provided, or neither is provided.',
       recovery:
-        'Provide either amenity (e.g., "hospital") or tag_key + tag_value (e.g., tag_key="leisure", tag_value="park"), but not both and not neither.',
+        'Provide either amenity (e.g., "hospital") or both tag_key and tag_value (e.g., tag_key="leisure", tag_value="park"). tag_key without tag_value is not valid.',
     },
     {
       reason: 'query_timeout',
       code: JsonRpcErrorCode.Timeout,
       when: 'The Overpass query exceeded the timeout.',
-      retryable: true,
+      retryable: false,
       recovery:
         'Reduce the bounding box area, add more specific tag filters, or increase timeout_seconds and retry.',
+    },
+    {
+      reason: 'result_too_large',
+      code: JsonRpcErrorCode.ServiceUnavailable,
+      when: 'Overpass ran out of memory — the result set exceeds the server memory limit.',
+      recovery:
+        'Narrow the query: reduce the bounding box area, add more specific tag filters, or limit element_types.',
     },
     {
       reason: 'rate_limited',
@@ -159,7 +166,7 @@ export const openstreetmapQueryBbox = tool('openstreetmap_query_bbox', {
         'invalid_tag',
         resolved.error === 'both'
           ? 'Cannot combine amenity with tag_key/tag_value.'
-          : 'Provide either amenity or tag_key + tag_value.',
+          : 'Provide either amenity or both tag_key and tag_value (both are required).',
         { ...ctx.recoveryFor('invalid_tag') },
       );
     }
@@ -177,7 +184,24 @@ export const openstreetmapQueryBbox = tool('openstreetmap_query_bbox', {
       timeoutSeconds: input.timeout_seconds,
     });
 
-    const response = await service.query(ql, ctx);
+    const response = await service.query(ql, ctx).catch((err) => {
+      if (err instanceof McpError) {
+        const data = err.data as Record<string, unknown> | undefined;
+        const reason = data?.reason as string | undefined;
+        // fetchWithTimeout throws RateLimited (no reason) for HTTP 429 — remap to rate_limited
+        if (!reason && data?.statusCode === 429) {
+          throw ctx.fail('rate_limited', err.message, { ...ctx.recoveryFor('rate_limited') });
+        }
+        if (
+          reason === 'query_timeout' ||
+          reason === 'result_too_large' ||
+          reason === 'rate_limited'
+        ) {
+          throw ctx.fail(reason, err.message, { ...ctx.recoveryFor(reason) });
+        }
+      }
+      throw err;
+    });
     const allPois = service.normalizeElements(response.elements);
     const limited = allPois.slice(0, input.limit);
 

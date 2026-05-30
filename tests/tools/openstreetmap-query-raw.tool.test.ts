@@ -3,6 +3,7 @@
  * @module tests/tools/openstreetmap-query-raw.tool.test
  */
 
+import { JsonRpcErrorCode, McpError } from '@cyanheads/mcp-ts-core/errors';
 import { createMockContext, getEnrichment } from '@cyanheads/mcp-ts-core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openstreetmapQueryRaw } from '@/mcp-server/tools/definitions/openstreetmap-query-raw.tool.js';
@@ -139,13 +140,76 @@ describe('openstreetmapQueryRaw', () => {
   });
 
   describe('error paths', () => {
-    it('propagates service errors (timeout, OOM, rate-limit etc.)', async () => {
+    it('propagates plain service errors without remapping', async () => {
       mockQuery.mockRejectedValue(new Error('Overpass query timed out'));
       const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
       const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
       await expect(openstreetmapQueryRaw.handler(input, ctx)).rejects.toThrow(
         'Overpass query timed out',
       );
+    });
+
+    it('remaps query_error McpError to ctx.fail with ValidationError code and recovery.hint', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(
+          JsonRpcErrorCode.ServiceUnavailable,
+          'Overpass API returned HTTP 400 — malformed query syntax.',
+          { reason: 'query_error' },
+        ),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      const err = await openstreetmapQueryRaw.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      // After remapping via ctx.fail, code should match the contract (ValidationError)
+      expect(err.data.reason).toBe('query_error');
+      expect(err.data.recovery?.hint).toBeDefined();
+    });
+
+    it('remaps query_timeout McpError to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(JsonRpcErrorCode.Timeout, 'Overpass query timed out: runtime error', {
+          reason: 'query_timeout',
+        }),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      const err = await openstreetmapQueryRaw.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('query_timeout');
+      expect(err.data.recovery?.hint).toBeDefined();
+    });
+
+    it('remaps result_too_large McpError to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(
+          JsonRpcErrorCode.ServiceUnavailable,
+          'Overpass ran out of memory: runtime error',
+          { reason: 'result_too_large' },
+        ),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      const err = await openstreetmapQueryRaw.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('result_too_large');
+      expect(err.data.recovery?.hint).toBeDefined();
+    });
+
+    it('remaps rate_limited McpError to ctx.fail with recovery.hint populated', async () => {
+      mockQuery.mockRejectedValue(
+        new McpError(
+          JsonRpcErrorCode.ServiceUnavailable,
+          'Overpass API returned HTTP 429 — all query slots occupied.',
+          { reason: 'rate_limited' },
+        ),
+      );
+      const ctx = createMockContext({ tenantId: 'test', errors: openstreetmapQueryRaw.errors });
+      const input = openstreetmapQueryRaw.input.parse({ query: VALID_QUERY });
+      const err = await openstreetmapQueryRaw.handler(input, ctx).catch((e) => e);
+      expect(err).toBeInstanceOf(McpError);
+      expect(err.data.reason).toBe('rate_limited');
+      expect(err.data.recovery?.hint).toBeDefined();
     });
   });
 

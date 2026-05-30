@@ -6,10 +6,14 @@
 import { createHash } from 'node:crypto';
 import type { Context } from '@cyanheads/mcp-ts-core';
 import type { AppConfig } from '@cyanheads/mcp-ts-core/config';
-import { serviceUnavailable, timeout as timeoutError } from '@cyanheads/mcp-ts-core/errors';
+import {
+  McpError,
+  serviceUnavailable,
+  timeout as timeoutError,
+} from '@cyanheads/mcp-ts-core/errors';
 import type { StorageService } from '@cyanheads/mcp-ts-core/storage';
 import type { RequestContextLike } from '@cyanheads/mcp-ts-core/utils';
-import { withRetry } from '@cyanheads/mcp-ts-core/utils';
+import { fetchWithTimeout, withRetry } from '@cyanheads/mcp-ts-core/utils';
 import { getServerConfig } from '@/config/server-config.js';
 import type {
   OverpassAroundParams,
@@ -27,6 +31,29 @@ const OVERPASS_TIMEOUT_PATTERN = /runtime error|query timed out|timed out/i;
 
 /** Overpass out-of-memory error patterns. */
 const OVERPASS_OOM_PATTERN = /out of memory|query run out/i;
+
+/** Client-side deadline per attempt (Overpass queries can run long). */
+const OVERPASS_CLIENT_TIMEOUT_MS = 90_000;
+
+/**
+ * Returns false for query-deterministic failures so withRetry does not re-submit
+ * a query that will fail identically every time. Exported for unit testing.
+ *
+ * Deterministic cases:
+ * - reason 'query_timeout' / 'result_too_large' — thrown by the service after
+ *   parsing a JSON remark from Overpass (HTTP 200 with embedded error).
+ * - statusCode 400 — thrown by fetchWithTimeout with InvalidParams code before
+ *   the service's manual 400 check runs (fetchWithTimeout intercepts non-2xx).
+ */
+export function isTransientOverpassError(error: unknown): boolean {
+  if (error instanceof McpError) {
+    const reason = error.data?.reason as string | undefined;
+    if (reason === 'query_timeout' || reason === 'result_too_large') return false;
+    // fetchWithTimeout throws InvalidParams for HTTP 400 — malformed query, never transient
+    if ((error.data as Record<string, unknown> | undefined)?.statusCode === 400) return false;
+  }
+  return true;
+}
 
 /**
  * Great-circle distance in meters between two WGS84 coordinates (haversine).
@@ -98,36 +125,24 @@ export class OverpassService {
 
     const result = await withRetry(
       async () => {
-        const response = await fetch(this.endpoint(), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': getServerConfig().nominatimUserAgent,
+        const response = await fetchWithTimeout(
+          this.endpoint(),
+          OVERPASS_CLIENT_TIMEOUT_MS,
+          ctx as unknown as RequestContextLike,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': getServerConfig().nominatimUserAgent,
+            },
+            body: `data=${encodeURIComponent(query)}`,
+            signal: ctx.signal,
           },
-          body: `data=${encodeURIComponent(query)}`,
-          signal: ctx.signal,
-        });
+        );
 
-        if (response.status === 429) {
-          throw serviceUnavailable('Overpass API returned HTTP 429 — all query slots occupied.', {
-            reason: 'rate_limited',
-          });
-        }
-
-        if (response.status === 400) {
-          const body = await response.text();
-          throw serviceUnavailable(
-            `Overpass API returned HTTP 400 — malformed query syntax. ${body.slice(0, 200)}`,
-            { reason: 'query_error' },
-          );
-        }
-
-        if (!response.ok) {
-          throw serviceUnavailable(`Overpass API returned HTTP ${response.status}`, {
-            status: response.status,
-          });
-        }
-
+        // fetchWithTimeout already handles all non-2xx responses (429 → RateLimited,
+        // 400 → InvalidParams, 5xx → ServiceUnavailable) and throws before reaching here.
+        // The response arriving here is always HTTP 2xx.
         const text = await response.text();
         if (/^\s*<(!DOCTYPE\s+html|html[\s>])/i.test(text)) {
           throw serviceUnavailable(
@@ -157,6 +172,7 @@ export class OverpassService {
         operation: 'overpass.query',
         context: ctx as unknown as RequestContextLike,
         baseDelayMs: 2000,
+        isTransient: isTransientOverpassError,
         signal: ctx.signal,
       },
     );
